@@ -7,13 +7,18 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 )
 
 const SESSION_NAME = "slaq-server"
 const SECRET_KEY = "my-secret"
 
 var sessionStore = sessions.NewCookieStore([]byte(SECRET_KEY))
+
+type User struct {
+	id      int64
+	netid   string
+	ics_url string
+}
 
 func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -40,7 +45,7 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 			// Now the netid and password are both valid
 			user, err := getUserFromNetid(username)
 			if err != nil {
-				res, err := db.Exec("INSERT INTO users(id, netid, ics_url) VALUES (?, ?, ?)", nil, username, icsUrl.String())
+				res, err := db.Exec("INSERT INTO users(id, netid, ics_url) VALUES (?, ?, ?)", nil, username, icsUrl)
 				if err != nil {
 					log.Println("Error getting new user id: ", err)
 					return
@@ -50,7 +55,6 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 				user.id = userId
 				user.netid = username
 			}
-
 			theSession, err := sessionStore.Get(r, SESSION_NAME)
 			if err != nil {
 				log.Println("Error loading session", err)
@@ -58,10 +62,12 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// We must save it as a string, not as a URL
-			theSession.Values["icsUrl"] = user.ics_url.String()
+			theSession.Values["icsUrl"] = user.ics_url
 			theSession.Values["username"] = user.netid
 			theSession.Save(r, w)
 			fmt.Fprintf(w, "You logged in successfully")
+		} else {
+			fmt.Fprintf(w, "bad input parameters")
 		}
 
 	}
@@ -98,15 +104,11 @@ func getUserFromNetid(netid string) (User, error) {
 			return User{}, errors.New("Internal error")
 		}
 
-		theurl, err := url.Parse(ics_url)
-		if err != nil {
-			log.Println("Error parsing ics url")
-		}
 
 		return User{
 			id:      id,
 			netid:   netid,
-			ics_url: *theurl,
+			ics_url: ics_url,
 		}, nil
 	}
 

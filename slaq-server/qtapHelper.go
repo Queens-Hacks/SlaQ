@@ -13,14 +13,14 @@ import (
 	"strings"
 )
 
-func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL, error) {
+func getIcsUrlFromUsernameAndPassword(username string, password string) (string, error) {
 	// We need a cookie jar to set a cookie for a request... That's why we are doing this
 	// nil represents custom options, which we don't want/care about
 	cookieJar, err := cookiejar.New(nil)
 	// This will never throw an error
 	if err != nil {
 		fmt.Println("Error creating cookiejar: ", err)
-		return url.URL{}, errors.New("Error creating cookiejar")
+		return "", errors.New("Error creating cookiejar")
 	}
 
 	// Slice of cookies that we will eventually give to our cookie jar
@@ -47,7 +47,7 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 	targetUrl, err := url.Parse("https://my.queensu.ca/software-centre")
 	if err != nil {
 		fmt.Println("Error parsing constant URL: ", err)
-		return url.URL{}, errors.New("Error parsing constant URL")
+		return "", errors.New("Error parsing constant URL")
 	}
 
 	// Point the cookie jar to our slice of cookies
@@ -65,7 +65,7 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 	resp, err := client.Get("https://my.queensu.ca/software-centre")
 	if err != nil {
 		fmt.Println("Error getting page: ", err)
-		return url.URL{}, errors.New("Error getting page")
+		return "", errors.New("Error getting page")
 	}
 
 	// Now that we have cookies, we need to POST our actual login credentials
@@ -118,7 +118,7 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 				for _, v := range token.Attr {
 					if v.Key == "class" && v.Val == "fail-message" {
 						log.Println("qtaphelper - User login failed")
-						return url.URL{}, errors.New("Bad username or password")
+						return "", errors.New("Bad username or password")
 					}
 				}
 			}
@@ -160,7 +160,7 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 	bodyByte, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading page: ", err)
-		return url.URL{}, errors.New("Error reading page")
+		return "", errors.New("Error reading page")
 	}
 
 	// Convert to a string so we can use strings package
@@ -173,13 +173,6 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 	// Use slice syntax to access this portion of the URL
 	urlString := wholeBody[urlStartIndex:urlEndIndex]
 
-	// Parse this URL string into an actual URL
-	parsedIcs, err := url.Parse(urlString)
-	if err != nil {
-		fmt.Println("Error parsing URL: ", err)
-		return url.URL{}, errors.New("Error parsing URL")
-	}
-
 	// We're done! No error.
-	return *parsedIcs, nil
+	return urlString, nil
 }

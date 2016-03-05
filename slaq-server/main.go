@@ -73,9 +73,3 @@ func initializeDatabase() {
 	}
 	log.Println("Database successfully created")
 }
-
-type User struct {
-	id      int64
-	netid   string
-	ics_url url.URL
-}
