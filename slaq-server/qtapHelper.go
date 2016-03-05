@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -90,6 +91,7 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 	// Programmatically access the DOM
 	d := html.NewTokenizer(resp.Body)
 	for {
+
 		tokenType := d.Next()
 		if tokenType == html.ErrorToken {
 			break
@@ -108,6 +110,15 @@ func getIcsUrlFromUsernameAndPassword(username string, password string) (url.URL
 					} else if v.Key == "name" && v.Val == "SAMLResponse" {
 						SamlResponse = token
 						continue
+					}
+				}
+			}
+		case html.StartTagToken:
+			if token.DataAtom == atom.P {
+				for _, v := range token.Attr {
+					if v.Key == "class" && v.Val == "fail-message" {
+						log.Println("qtaphelper - User login failed")
+						return url.URL{}, errors.New("Bad username or password")
 					}
 				}
 			}
