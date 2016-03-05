@@ -36,7 +36,10 @@ func arbitraryWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &wsClient{wsConnection: conn, messagesForClient: make(chan []byte)}
+	client := &wsClient{
+		wsConnection:      conn,
+		messagesForClient: make(chan []byte),
+	}
 
 	welcomeMessage := externalMessage{MessageText: "Welcome to the chat for " + courseCode, MessageDisplayName: "The Admins"}
 	welcomeMessageJson, err := json.Marshal(welcomeMessage)
@@ -59,6 +62,15 @@ func arbitraryWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	if theSession.Values["username"] == nil || theSession.Values["username"] == "" {
 		log.Println("Unauthenticated user trying to get a websocket write connection")
 	} else {
+		if str, ok := theSession.Values["username"].(string); ok {
+			user, err := getUserFromNetid(str)
+			if err != nil {
+				log.Println("Error getting user id from netid", err)
+			} else {
+				client.userId = user.id
+			}
+		}
+
 		client.readMessageLoop(&someLobby)
 	}
 

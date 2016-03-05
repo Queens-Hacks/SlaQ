@@ -57,7 +57,7 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 		// It is unclear if there is a use of the unique global ID.
 		messageId := someLobby.getNextMessageId()
 
-		_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name) VALUES(?, ?, ?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText, messageId, incomingMessage.MessageDisplayName)
+		_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText, messageId, incomingMessage.MessageDisplayName, client.userId)
 		if err != nil {
 			log.Println("Error recording message to database", err)
 		}
