@@ -70,8 +70,8 @@ func getALobby(courseCode string) lobby {
 			}
 			allLobbies[courseCode] = someLobby
 		}
-
 	}
+
 	go someLobby.serveLobby()
 	allLobbiesMutex.Unlock()
 	return someLobby
@@ -129,6 +129,9 @@ type externalMessage struct {
 	// Messaged id assigned by the database, used by the front-end to intelligently re-order messages
 	// and potentially re-request missing ones
 	MessageId int64
+
+	// Number of favorites/stars/likes, whatever, of a particular message
+	Stars int64
 }
 
 func (theLobby *lobby) serveLobby() {
