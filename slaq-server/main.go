@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	// We need to import with the underscore because we don't directly use the library,
 	// but we rely on it being available under sql.Open()
+	"github.com/gorilla/context"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 var db *sql.DB
@@ -70,4 +72,10 @@ func initializeDatabase() {
 		log.Fatal(err)
 	}
 	log.Println("Database successfully created")
+}
+
+type User struct {
+	id      int64
+	netid   string
+	ics_url url.URL
 }
