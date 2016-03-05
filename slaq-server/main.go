@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	// We need to import with the underscore because we don't directly use the library,
 	// but we rely on it being available under sql.Open()
-	"github.com/gorilla/context"
-	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
-	"net/url"
+
+	"github.com/gorilla/context"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db *sql.DB
