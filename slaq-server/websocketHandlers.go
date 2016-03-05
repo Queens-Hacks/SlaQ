@@ -51,5 +51,15 @@ func arbitraryWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	go client.writeMessageLoop(&someLobby)
 
-	client.readMessageLoop(&someLobby)
+	theSession, err := sessionStore.Get(r, SESSION_NAME)
+
+	if err != nil {
+		log.Println("Websocket handler couldn't get a session: ", err)
+	}
+	if theSession.Values["username"] == nil || theSession.Values["username"] == "" {
+		log.Println("Unauthenticated user trying to get a websocket write connection")
+	} else {
+		client.readMessageLoop(&someLobby)
+	}
+
 }
