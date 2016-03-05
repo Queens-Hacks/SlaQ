@@ -1,0 +1,113 @@
+html * {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+
+.prompt {
+    font-size: 2em;
+    margin: 2px;
+}
+
+body {
+    text-align: center;
+    padding: 2px;
+    margin: 10px auto;
+    background-color: #F3ECE2;
+    max-width: 1100px;
+}
+
+.ui {
+    border-radius: 200px;
+    text-align: center;
+    font-size: 1em;
+    /*height: 60px;*/
+    /*padding: 0px 10px;*/
+    /*background-color: rgb(120, 150, 130);*/
+    background-color: rgba(120, 150, 130, 0.7);
+}
+
+#results {
+    padding-left: 1px;
+}
+
+#results * {
+    font-family: "Helvetica", sans-serif;
+}
+
+footer {
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+
+ul {
+    text-align: left;
+    list-style-type: none;
+}
+
+li {
+    background-color: rgba(120, 150, 130, 0.5);
+    border-radius: 6px;
+    padding: 2px 5px;
+    margin: 2px 2px;
+}
+
+@media screen and (min-width: 600px) {
+    .cardLeft {
+        float: left;
+        margin: 0px;
+    }
+    .cardRight {
+        float: right;
+        margin: 0px;
+    }
+    .card {
+        clear: both;
+    }
+}
+
+.card * {
+    margin: 0px;
+}
+
+.desc {
+    display: none;
+    margin-left: .3em;
+}
+
+.open .desc {
+    display: block
+}
+
+a:link {
+    color: black;
+    background-color: transparent;
+    text-decoration: none
+}
+
+a:visited {
+    color: black;
+    background-color: transparent;
+    text-decoration: none
+}
+
+a:hover {
+    color: black;
+    background-color: transparent;
+    text-decoration: underline
+}
+
+a:active {
+    color: black;
+    background-color: transparent;
+    text-decoration: underline
+}
+
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+select::-ms-expand {
+    display: none;
+}
