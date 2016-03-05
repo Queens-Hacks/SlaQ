@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.CourseTitle}}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+</head>
+<body>
+<h1>{{.CourseTitle}}</h1>
+
+<div id="comments"></div>
+<form id="form">
+    <label for="desiredName">Name</label>
+    <input id="desiredName" type="text"/>
+    <label for="userMessage">Message</label>
+    <input id="userMessage" type="text"/>
+</form>
+
+<script type="text/javascript">
+    var socket = new WebSocket("ws://{{.HostAndPort}}/ws/course/{{.CourseCode}}");
+
+    socket.onmessage = function(msg) {
+        var comments = document.getElementById("comments");
+        var newMessage = document.createElement("p");
+        var incomingMessage = JSON.parse(msg.data);
+        newMessage.innerHTML = incomingMessage["MessageDisplayName"] + ": " + incomingMessage["MessageText"];
+        comments.appendChild(newMessage);
+    };
+
+    var messageBox = document.getElementById("userMessage");
+    messageBox.onkeypress = function(evt) {
+        if (evt.keyCode === 13) {
+            var message = document.getElementById("userMessage");
+            var nameField = document.getElementById("desiredName");
+            var text = message.value;
+            var name = nameField.value;
+
+            var outgoingMessage = {
+                MessageText: text,
+                MessageDisplayName: name
+            };
+
+            socket.send(JSON.stringify(outgoingMessage));
+            message.value = "";
+            return false
+        }
+    }
+</script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+      crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+      crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+</body>
+</html>
