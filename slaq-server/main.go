@@ -37,7 +37,7 @@ func initializeDatabase() {
 	// This line is important, because otherwise we shadow `db` in the global scope
 	// it doesn't actually do what we want
 	var err error
-	db, err = sql.Open("sqlite3", ":memory:")
+	db, err = sql.Open("sqlite3", "a.sqlite3")
 	if err != nil {
 		// We can't do anything without the database
 		log.Fatal(err)
