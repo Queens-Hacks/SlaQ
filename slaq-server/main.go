@@ -49,7 +49,10 @@ func initializeDatabase() {
 
 	tableStmt := "CREATE TABLE IF NOT EXISTS messages (id INTEGER NOT NULL PRIMARY KEY, " +
 		"channel_id INTEGER NOT NULL, " +
-		"message_text TEXT NOT NULL); CREATE TABLE IF NOT EXISTS lobbies (id INTEGER NOT NULL PRIMARY KEY, course_code TEXT NOT NULL);"
+		"message_text TEXT NOT NULL, channel_msg_id INTEGER NOT NULL, author_display_name TEXT NOT NULL);" +
+		"CREATE TABLE IF NOT EXISTS lobbies (id INTEGER NOT NULL PRIMARY KEY, course_code TEXT UNIQUE NOT NULL);" +
+		"CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL PRIMARY KEY, netid TEXT UNIQUE NOT NULL, ics_url TEXT UNIQUE NOT NULL);" +
+		"CREATE TABLE IF NOT EXISTS stars (id INTEGER NOT NULL PRIMARY KEY, starrer_id INTEGER NOT NULL, staree_id INTEGER NOT NULL, message_id INTEGER NOT NULL);"
 	_, err = db.Exec(tableStmt)
 	if err != nil {
 		log.Fatal(err)

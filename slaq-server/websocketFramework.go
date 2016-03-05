@@ -28,12 +28,16 @@ func getALobby(courseCode string) lobby {
 			fmt.Println("Error getting lobby id")
 		}
 
-		someLobby = lobby{
-			clients:    make(map[*wsClient]bool),
-			broadcast:  make(chan *internalMessage),
-			register:   make(chan *wsClient),
-			deregister: make(chan *wsClient),
-			channelId:  channelId,
+			someLobby = lobby{
+				clients:          make(map[*wsClient]bool),
+				broadcast:        make(chan *internalMessage),
+				register:         make(chan *wsClient),
+				deregister:       make(chan *wsClient),
+				channelId:        channelId,
+				nextMessageId:    1,
+				nextMessageMutex: &sync.Mutex{},
+			}
+			allLobbies[courseCode] = someLobby
 		}
 		allLobbies[courseCode] = someLobby
 	}
@@ -58,6 +62,16 @@ type lobby struct {
 
 	// Number that is uniquely assigned to this channel
 	channelId int64
+
+	// Next message id for this particular channel
+	nextMessageId int64
+
+	// Mutex for accessing the nextMessageId variable
+	// We need this so we can store nextMessageId in a temporary variable,
+	// then increment it, then return the old value
+	// We could probably use atomic primitives, e.g. something like getAndIncrement(),
+	// but this will solve our problem
+	nextMessageMutex *sync.Mutex
 }
 
 type internalMessage struct {
@@ -103,7 +117,7 @@ func (theLobby *lobby) serveLobby() {
 		case msg := <-theLobby.broadcast:
 			for someClient := range theLobby.clients {
 				// TODO: Check the author and do magic (replace name with "You")
-				outgoingMessage := externalMessage{MessageText: string(msg.MessageText), MessageDisplayName: string(msg.MessageDisplayName)}
+				outgoingMessage := externalMessage{MessageText: string(msg.MessageText), MessageDisplayName: string(msg.MessageDisplayName), MessageId: msg.MessageId}
 				stringifiedJson, err := json.Marshal(outgoingMessage)
 				if err != nil {
 					log.Println("Error marshalling outgoing message", err)
@@ -122,4 +136,14 @@ func (theLobby *lobby) serveLobby() {
 		}
 
 	}
+}
+
+// This keeps a running counter of the messages in each room, and concurrency safely
+// gives the next number when requested
+func (theLobby *lobby) getNextMessageId() int64 {
+	theLobby.nextMessageMutex.Lock()
+	nextId := theLobby.nextMessageId
+	theLobby.nextMessageId += 1
+	theLobby.nextMessageMutex.Unlock()
+	return nextId
 }

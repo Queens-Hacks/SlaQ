@@ -19,16 +19,16 @@
 <script type="text/javascript">
     var socket = new WebSocket("ws://{{.HostAndPort}}/ws/course/{{.CourseCode}}");
 
-    socket.onmessage = function(msg) {
+    socket.onmessage = function (msg) {
         var comments = document.getElementById("comments");
         var newMessage = document.createElement("p");
         var incomingMessage = JSON.parse(msg.data);
-        newMessage.innerHTML = incomingMessage["MessageDisplayName"] + ": " + incomingMessage["MessageText"];
+        newMessage.innerHTML = "[" + incomingMessage["MessageId"].toString() + "] " + incomingMessage["MessageDisplayName"] + ": " + incomingMessage["MessageText"];
         comments.appendChild(newMessage);
     };
 
     var messageBox = document.getElementById("userMessage");
-    messageBox.onkeypress = function(evt) {
+    messageBox.onkeypress = function (evt) {
         if (evt.keyCode === 13) {
             var message = document.getElementById("userMessage");
             var nameField = document.getElementById("desiredName");

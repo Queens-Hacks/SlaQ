@@ -51,14 +51,15 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 		// Escape HTML in case the users are being nasty
 		incomingMessage.MessageText = html.EscapeString(string(incomingMessage.MessageText))
 
-		res, err := db.Exec("INSERT INTO messages(id, channel_id, message_text) VALUES(?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText)
+		// This replaces the internal database ID with our custom ID, that is incremented
+		// per room, instead of globally
+
+		// It is unclear if there is a use of the unique global ID.
+		messageId := someLobby.getNextMessageId()
+
+		_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name) VALUES(?, ?, ?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText, messageId, incomingMessage.MessageDisplayName)
 		if err != nil {
 			log.Println("Error recording message to database", err)
-		}
-
-		messageId, err := res.LastInsertId()
-		if err != nil {
-			log.Println("Error getting last insert ID", err)
 		}
 
 		// TODO: Do magic with Slack commands
