@@ -21,12 +21,24 @@ func main() {
 	// Catch-all, including the home page
 	http.HandleFunc("/", indexPageHandler)
 
+	// This is an endpoint that returns one message over a GET (not websockets)
+	// The URL style will be /singleMessage/courseCode/messageId
+	// GET /singleMessage/cisc332/37
+	http.HandleFunc("/singleMessage/", singleMessageHandler)
+
+	// This endpoint will give the user a certain amount of messages, up to a limit
+	// The URL style will be /getSomeMessages/:courseCode/:numMessages
+	// GET /getSomeMessages/cisc332/50
+	http.HandleFunc("/getSomeMessages/", getSomeMessagesHandler)
+
 	// This does double duty:
 	// The GET side just gives a basic login page with a form, which should be built from a template
 	// The POST side actually takes the form and authenticates a user
 	http.HandleFunc("/login", loginPageHandler)
+
 	// This just deletes the user's session
 	http.HandleFunc("/logout", logoutPageHandler)
+
 	// ListenAndServe should never return, if it does, it's a fatal error
 	// We are wrapping http.DefaultServeMux in context.ClearHandler because gorilla tells
 	// us to... It is supposed used to prevent a resource leak.
