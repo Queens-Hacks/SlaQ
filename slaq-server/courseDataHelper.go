@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/apognu/gocal"
 	"log"
 	"net/http"
 	"strings"
-	"errors"
-	"encoding/json"
 )
 
 func parseIcsFromUrl(icsUrl string) ([]string, error) {
@@ -61,11 +61,42 @@ func getMyCoursesHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-		courses, err := parseIcsFromUrl(user.ics_url)
+
+		rows, err := db.Query("SELECT * from courses WHERE course_taker_id = ?", user.id)
 		if err != nil {
-			log.Println("Error parsing ics", err)
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			return
+			log.Println("error reading from database", err)
+		}
+		defer rows.Close()
+
+		var sawACourse = false
+		var courses []string
+		for rows.Next() {
+
+			var id int64
+			var course_code string
+			var course_taker_id int64
+			err = rows.Scan(&id, &course_code, &course_taker_id)
+			if err != nil {
+				log.Println("Error scanning from database", err)
+				break
+			}
+			courses = append(courses, course_code)
+			sawACourse = true
+		}
+		if !sawACourse {
+			courses, err = parseIcsFromUrl(user.ics_url)
+			if err != nil {
+				log.Println("Error parsing ics", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
+			}
+			for _, v := range courses {
+				_, err := db.Exec("INSERT INTO courses(id, course_code, course_taker_id) VALUES (?, ?, ?);", nil, v, user.id)
+				if err != nil {
+					log.Println("error inserting course into db: ", err)
+					break
+				}
+			}
 		}
 
 		json.NewEncoder(w).Encode(courses)
