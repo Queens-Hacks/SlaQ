@@ -45,16 +45,22 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 			// Now the netid and password are both valid
 			user, err := getUserFromNetid(username)
 			if err != nil {
+				// If there is an error, then we weren't able to construct a user struct
+				// This is probably because the user isn't in our database yet!
+
+				// So let's fix that - create an entry for the user in our database
 				res, err := db.Exec("INSERT INTO users(id, netid, ics_url) VALUES (?, ?, ?)", nil, username, icsUrl)
 				if err != nil {
 					log.Println("Error getting new user id: ", err)
 					return
 				}
+				// Get the user's id, so we can add it to the struct
 				userId, err := res.LastInsertId()
 				user.ics_url = icsUrl
 				user.id = userId
 				user.netid = username
 			}
+			// Now give the user a session - they just successfully logged in
 			theSession, err := sessionStore.Get(r, SESSION_NAME)
 			if err != nil {
 				log.Println("Error loading session", err)
@@ -65,8 +71,10 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 			theSession.Values["icsUrl"] = user.ics_url
 			theSession.Values["username"] = user.netid
 			theSession.Save(r, w)
+			// TODO: Make this a redirect so the user isn't asked if they would like to double POST
 			fmt.Fprintf(w, "You logged in successfully")
 		} else {
+			// TODO: Make this a redirect
 			fmt.Fprintf(w, "bad input parameters")
 		}
 
@@ -86,7 +94,9 @@ func logoutPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserFromNetid(netid string) (User, error) {
+	// Try to find the user in the database
 	rows, err := db.Query("SELECT * FROM users WHERE netid = ?", netid)
+
 	if err != nil {
 		log.Println("Error looking up user in database")
 		return User{}, errors.New("Internal error")
@@ -111,5 +121,6 @@ func getUserFromNetid(netid string) (User, error) {
 		}, nil
 	}
 
+	// In this case, everything worked, we just got back a table with zero rows
 	return User{}, errors.New("No user found")
 }
