@@ -16,7 +16,7 @@ type wsClient struct {
 	messagesForClient chan []byte
 
 	// The user's id - from the database somehow
-	userId uint64
+	userId int64
 }
 
 func (client *wsClient) readMessageLoop(someLobby *lobby) {
@@ -51,10 +51,20 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 		// Escape HTML in case the users are being nasty
 		incomingMessage.MessageText = html.EscapeString(string(incomingMessage.MessageText))
 
+		res, err := db.Exec("INSERT INTO messages(id, channel_id, message_text) VALUES(?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText)
+		if err != nil {
+			log.Println("Error recording message to database", err)
+		}
+
+		messageId, err := res.LastInsertId()
+		if err != nil {
+			log.Println("Error getting last insert ID", err)
+		}
+
 		// TODO: Do magic with Slack commands
 
 		// Construct an internal struct, this case including our internal user id
-		outgoingMessage := &internalMessage{MessageText: []byte(incomingMessage.MessageText), MessageAuthorId: client.userId, MessageDisplayName: []byte(incomingMessage.MessageDisplayName)}
+		outgoingMessage := &internalMessage{MessageText: []byte(incomingMessage.MessageText), MessageAuthorId: client.userId, MessageDisplayName: []byte(incomingMessage.MessageDisplayName), MessageId: messageId}
 
 		// Send the message out for broadcast
 		someLobby.broadcast <- outgoingMessage

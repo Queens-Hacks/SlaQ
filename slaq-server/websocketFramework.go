@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 )
@@ -18,11 +19,21 @@ func getALobby(courseCode string) lobby {
 	someLobby, ok := allLobbies[courseCode]
 	if !ok {
 		// Construct a new lobby struct, since it hasn't been created yet
+		res, err := db.Exec("INSERT INTO lobbies(id, course_code) VALUES(?, ?)", nil, courseCode)
+		if err != nil {
+			fmt.Println("Error inserting lobby into database", err)
+		}
+		channelId, err := res.LastInsertId()
+		if err != nil {
+			fmt.Println("Error getting lobby id")
+		}
+
 		someLobby = lobby{
 			clients:    make(map[*wsClient]bool),
 			broadcast:  make(chan *internalMessage),
 			register:   make(chan *wsClient),
 			deregister: make(chan *wsClient),
+			channelId:  channelId,
 		}
 		allLobbies[courseCode] = someLobby
 	}
@@ -44,6 +55,9 @@ type lobby struct {
 
 	// The channel on which we receive deregister requests (from a websocket CLOSE message)
 	deregister chan *wsClient
+
+	// Number that is uniquely assigned to this channel
+	channelId int64
 }
 
 type internalMessage struct {
@@ -54,7 +68,10 @@ type internalMessage struct {
 	MessageDisplayName []byte
 
 	// The internal author id for our use
-	MessageAuthorId uint64
+	MessageAuthorId int64
+
+	// Message id assigned by the database, but this is also sent to the frontend
+	MessageId int64
 }
 
 type externalMessage struct {
@@ -63,6 +80,10 @@ type externalMessage struct {
 
 	// The display name set by the user
 	MessageDisplayName string
+
+	// Messaged id assigned by the database, used by the front-end to intelligently re-order messages
+	// and potentially re-request missing ones
+	MessageId int64
 }
 
 func (theLobby *lobby) serveLobby() {
