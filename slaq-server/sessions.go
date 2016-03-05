@@ -25,7 +25,7 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		// Get the username and password from the incoming post
 		r.ParseForm()
-		username := r.Form.Get("name")
+		username := r.Form.Get("username")
 		password := r.Form.Get("password")
 		// If they don't log in, we won't redirect them to an authenticated page
 
