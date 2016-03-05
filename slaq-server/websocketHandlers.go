@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"strings"
-	"encoding/json"
 )
 
 // Set up our upgrader to websockets
@@ -38,7 +38,7 @@ func arbitraryWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	client := &wsClient{wsConnection: conn, messagesForClient: make(chan []byte)}
 
-	welcomeMessage := externalMessage{MessageText:"Welcome to the chat for " + courseCode, MessageDisplayName:"The Admins"}
+	welcomeMessage := externalMessage{MessageText: "Welcome to the chat for " + courseCode, MessageDisplayName: "The Admins"}
 	welcomeMessageJson, err := json.Marshal(welcomeMessage)
 
 	if err != nil {

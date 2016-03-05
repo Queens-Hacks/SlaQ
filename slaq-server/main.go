@@ -5,8 +5,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
-	//"github.com/gorilla/mux"
-	//"github.com/gorilla/sessions"
 )
 
 var db *sql.DB
@@ -14,6 +12,15 @@ var db *sql.DB
 func main() {
 	initializeDatabase()
 
+	// Course page - this is the pretty page shown to the user - should write HTML
+	http.HandleFunc("/course/", arbitraryChatPageHandler)
+	// This is the websocket connection link - should upgrade to a websocket connection
+	http.HandleFunc("/ws/course/", arbitraryWebsocketHandler)
+	// Catch-all, including the home page
+	http.HandleFunc("/", indexPageHandler)
+
+	// ListenAndServe should never return, if it does, it's a fatal error
+	log.Fatal(http.ListenAndServe(":9999", nil))
 }
 
 func initializeDatabase() {
@@ -35,14 +42,4 @@ func initializeDatabase() {
 		log.Fatal(err)
 	}
 	log.Println("Database successfully created")
-
-	// Course page - this is the pretty page shown to the user - should write HTML
-	http.HandleFunc("/course/", arbitraryChatPageHandler)
-	// This is the websocket connection link - should upgrade to a websocket connection
-	http.HandleFunc("/ws/course/", arbitraryWebsocketHandler)
-	// Catch-all, including the home page
-	http.HandleFunc("/", indexPageHandler)
-
-	// ListenAndServe should never return, if it does, it's a fatal error
-	log.Fatal(http.ListenAndServe(":9999", nil))
 }

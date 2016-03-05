@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
-	"html/template"
 )
 
 type courseData struct {
 	CourseTitle string
 	HostAndPort string
-	CourseCode string
+	CourseCode  string
 }
 
 func arbitraryChatPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,9 +29,8 @@ func arbitraryChatPageHandler(w http.ResponseWriter, r *http.Request) {
 	courseCode := urlPathSegments[2]
 	tmpl := template.Must(template.ParseFiles("templates/course_page.html"))
 
-	cData := courseData{CourseTitle:"Databases", HostAndPort:r.Host, CourseCode:courseCode}
+	cData := courseData{CourseTitle: "Databases", HostAndPort: r.Host, CourseCode: courseCode}
 	tmpl.Execute(w, cData)
-
 
 }
 
