@@ -17,16 +17,47 @@ func getALobby(courseCode string) lobby {
 	allLobbiesMutex.Lock()
 	// See if the allLobbies map contains our desired lobby
 	someLobby, ok := allLobbies[courseCode]
+
 	if !ok {
-		// Construct a new lobby struct, since it hasn't been created yet
-		res, err := db.Exec("INSERT INTO lobbies(id, course_code) VALUES(?, ?)", nil, courseCode)
+		var wasInDatabase = false
+		rows, err := db.Query("SELECT * FROM lobbies WHERE course_code = ?", courseCode)
 		if err != nil {
-			fmt.Println("Error inserting lobby into database", err)
+			log.Println("Error searching for course in database")
 		}
-		channelId, err := res.LastInsertId()
-		if err != nil {
-			fmt.Println("Error getting lobby id")
+		defer rows.Close()
+		for rows.Next() {
+			var id int64
+			var course_code string
+
+			err = rows.Scan(&id, &course_code)
+			if err != nil {
+				log.Println("Scan error", err)
+				break
+			}
+
+			someLobby = lobby{
+				clients:    make(map[*wsClient]bool),
+				broadcast:  make(chan *internalMessage),
+				register:   make(chan *wsClient),
+				deregister: make(chan *wsClient),
+				channelId:  id,
+				// TODO: Store next message id in database
+				nextMessageId:    1,
+				nextMessageMutex: &sync.Mutex{},
+			}
+			wasInDatabase = true
+			allLobbies[courseCode] = someLobby
 		}
+		if !wasInDatabase {
+			// Construct a new lobby struct, since it hasn't been created yet
+			res, err := db.Exec("INSERT INTO lobbies(id, course_code) VALUES(?, ?)", nil, courseCode)
+			if err != nil {
+				fmt.Println("Error inserting lobby into database", err)
+			}
+			channelId, err := res.LastInsertId()
+			if err != nil {
+				fmt.Println("Error getting lobby id")
+			}
 
 			someLobby = lobby{
 				clients:          make(map[*wsClient]bool),
@@ -39,7 +70,7 @@ func getALobby(courseCode string) lobby {
 			}
 			allLobbies[courseCode] = someLobby
 		}
-		allLobbies[courseCode] = someLobby
+
 	}
 	go someLobby.serveLobby()
 	allLobbiesMutex.Unlock()
