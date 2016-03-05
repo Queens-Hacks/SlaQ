@@ -22,12 +22,12 @@ type User struct {
 
 func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case http.MethodGet:
+	case "GET":
 		// It's a GET - let's give them the login page
 		tmpl := template.Must(template.ParseFiles("templates/login_page.html"))
 		tmpl.Execute(w, nil)
 		return
-	case http.MethodPost:
+	case "POST":
 		// Get the username and password from the incoming post
 		r.ParseForm()
 		username := r.Form.Get("username")
@@ -103,7 +103,6 @@ func getUserFromNetid(netid string) (User, error) {
 			log.Println("Error scanning from database")
 			return User{}, errors.New("Internal error")
 		}
-
 
 		return User{
 			id:      id,

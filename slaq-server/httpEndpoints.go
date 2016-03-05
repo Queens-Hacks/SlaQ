@@ -8,7 +8,7 @@ import (
 )
 
 func singleMessageHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != "GET" {
 		http.Error(w, "Must only GET this endpoint", http.StatusBadRequest)
 		return
 	}
@@ -55,7 +55,7 @@ func singleMessageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getSomeMessagesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != "GET" {
 		http.Error(w, "Must only GET this endpoint", http.StatusBadRequest)
 		return
 	}
