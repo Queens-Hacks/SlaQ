@@ -1,113 +1,144 @@
+@import url(https://fonts.googleapis.com/css?family=Pacifico);
 html * {
-    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-family: "Helvetica";
+  margin: 0px;
+  padding: 0px;
 }
-
-.prompt {
-    font-size: 2em;
-    margin: 2px;
+body, html, .container, #myApp {
+  height: 100%;
 }
+#chatContainer{
+  height: 100%;
+  max-width: 700px;
+  margin: auto;
 
+}
+.MessageList {
+  height: calc(100% - 35px);
+  width: 100%;
+  overflow-y: scroll;
+}
+#messages {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.241);
+  background-color: rgba(255, 255, 255, 0.141);
+}
+.star, .starPlaceholder {
+  width: 20px;
+  margin-left: 7px;
+  color: grey
+}
+.starPlaceholder {
+  opacity: .0;
+}
+.star::before {
+  content: "★";
+  align-content: center;
+  width: 0px;
+  float: left;
+  font-size: 1.8em;
+  line-height: .9em;
+  margin: 0px;
+  padding: 0px;
+  color: #fff7a9;
+  text-shadow: 1px 1px rgb(170, 200, 20);
+}
+.commentInfo {
+  padding-left: 10px;
+  display: inline-block;
+  width: 150px;
+  border-style: bold;
+}
+.commentInfo * {
+  overflow-x: hidden;
+}
+.commentInfo::after {
+  content: ": ";
+  opacity: 0.3;
+  float: right;
+  right: 0;
+  padding-right: 10px;
+}
+.commentBody {}
 body {
-    text-align: center;
-    padding: 2px;
-    margin: 10px auto;
-    background-color: #F3ECE2;
-    max-width: 1100px;
+  text-align: center;
+  padding: 2px;
+  margin: 0px auto;
+  background-color: #F3ECE2;
 }
-
-.ui {
-    border-radius: 200px;
-    text-align: center;
-    font-size: 1em;
-    /*height: 60px;*/
-    /*padding: 0px 10px;*/
-    /*background-color: rgb(120, 150, 130);*/
-    background-color: rgba(120, 150, 130, 0.7);
-}
-
-#results {
-    padding-left: 1px;
-}
-
-#results * {
-    font-family: "Helvetica", sans-serif;
-}
-
-footer {
-    width: 100%;
-    text-align: center;
-    overflow: hidden;
-}
-
 ul {
-    text-align: left;
-    list-style-type: none;
+  text-align: left;
+  list-style-type: none;
+  /*overflow-y: scroll;*/
 }
-
 li {
-    background-color: rgba(120, 150, 130, 0.5);
-    border-radius: 6px;
-    padding: 2px 5px;
-    margin: 2px 2px;
+  background-color: rgba(120, 150, 130, 0.05);
+  padding: 2px 5px;
+  margin: 2px 2px;
+  border-bottom: solid 1px #c7d7ee;
+  border-radius: 4px;
 }
-
-@media screen and (min-width: 600px) {
-    .cardLeft {
-        float: left;
-        margin: 0px;
-    }
-    .cardRight {
-        float: right;
-        margin: 0px;
-    }
-    .card {
-        clear: both;
-    }
+@media screen and (min-width: 600px) {}
+#form {
+  width: 100%;
 }
-
-.card * {
-    margin: 0px;
+#desiredName {
+  width: 90px;
+  border-radius: 4px 0px 0px 4px;
 }
-
-.desc {
-    display: none;
-    margin-left: .3em;
+#userMessage {
+  width: calc( 100% - 90px);
+  border-radius: 0px 4px 4px 0px;
 }
-
-.open .desc {
-    display: block
+input[type="text"] {
+  background-color: rgba(160, 160, 140, 0.03);
+  padding: 4px;
+  border: solid 1px #fff;
+  transition: box-shadow 0.3s;
 }
-
+box-shadow: inset 1px 1px 2px 0 #c9c9c9;
+input[type="text"]:focus, input[type="text"].focus {
+  box-shadow: inset 1px 1px 2px 0 #707070;
+}
 a:link {
-    color: black;
-    background-color: transparent;
-    text-decoration: none
+  color: black;
+  background-color: transparent;
+  text-decoration: none
 }
-
 a:visited {
-    color: black;
-    background-color: transparent;
-    text-decoration: none
+  color: black;
+  background-color: transparent;
+  text-decoration: none
 }
-
 a:hover {
-    color: black;
-    background-color: transparent;
-    text-decoration: underline
+  color: black;
+  background-color: transparent;
+  text-decoration: underline
 }
-
 a:active {
-    color: black;
-    background-color: transparent;
-    text-decoration: underline
+  color: black;
+  background-color: transparent;
+  text-decoration: underline
 }
-
-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+#title {
+  position: absolute;
+  left: 10px;
+  top: 10px
 }
-
-select::-ms-expand {
-    display: none;
+#title h1 {
+  text-align: center;
+  font-family: 'Pacifico', cursive;
+  font-weight: 400;
+  font-style: italic;
+  font-size-adjust: none;
+  font-language-override: normal;
+  font-kerning: auto;
+  font-feature-settings: "kern", "liga", "dlig", "hlig", "cswh";
+  font-synthesis: weight style;
+  font-size: 2.8em;
+  line-height: 1.2;
 }
