@@ -284,7 +284,8 @@
 	    value: function render() {
 	      var _this6 = this;
 	
-	      var messageNodes = this.props.list.map(function (msg) {
+	      var msgs = this.props.list || [];
+	      var messageNodes = msgs.map(function (msg) {
 	        var payload = {
 	          name: msg.MessageDisplayName,
 	          id: msg.MessageId,
