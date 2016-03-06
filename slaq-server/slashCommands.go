@@ -34,12 +34,14 @@ func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId in
 }
 
 func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringMessageId int64) {
+	// Find the real message id, versus the channel message id... It gets confusing
 	rows, err := db.Query("SELECT * FROM messages WHERE channel_msg_id = ? AND channel_id = ?", messageToStar, theLobby.channelId)
 	if err != nil {
 		log.Println("Error finding messages for sendStar: ", err)
 		return
 	}
 
+	// Read in the singular message in this scope
 	var message_to_star_real_id int64
 	var channel_id int64
 	var message_text string
@@ -56,12 +58,14 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 	}
 	rows.Close()
 
+	// Now that we have the true message id, insert our star
 	_, err = db.Exec("INSERT INTO stars(id, starrer_id, starree_id, message_id) VALUES (?, ?, ?, ?);", nil, starrerId, author_id, message_to_star_real_id)
 	if err != nil {
 		log.Println("error writing star to database", err)
 		return
 	}
 
+	// Now, get all the stars
 	stars, err := db.Query("SELECT * FROM stars WHERE message_id = ?;", message_to_star_real_id)
 	if err != nil {
 		log.Println("error loading stars", err)
@@ -69,12 +73,15 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 	}
 	defer stars.Close()
 	var starCounter = 0
+
+	// Count the stars
 	for stars.Next() {
 		var star_id, starrer_id, starree_id, message_id int64
 		stars.Scan(&star_id, &starrer_id, &starree_id, &message_id)
 		starCounter += 1
 	}
 
+	// Special message to send to the front end ...
 	type StarMessage struct {
 		MessageId int64
 		NumStars  int
@@ -91,6 +98,8 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 		return
 	}
 
+	// ... from a magic sender
+	// TODO: Make it so normal users cannot send with the user __ADMIN__
 	theLobby.broadcast <- &internalMessage{
 		MessageText:        marshalled,
 		MessageDisplayName: []byte("__ADMIN__"),
