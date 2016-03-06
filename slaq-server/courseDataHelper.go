@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"unicode"
 )
 
 func parseIcsFromUrl(icsUrl string) ([]string, error) {
@@ -55,6 +56,12 @@ func parseIcsFromUrl(icsUrl string) ([]string, error) {
 		}
 		courseType := splits[0]
 		courseNumber := splits[1]
+
+		if unicode.IsLetter(rune(courseNumber[len(courseNumber)-1])) {
+			if len(courseNumber) >= 2 {
+				courseNumber = courseNumber[0 : len(courseNumber)-1]
+			}
+		}
 
 		// This is just being done we can join the string, maybe there's a better way, but this works
 		courseTypeNumSlice := []string{courseType, courseNumber}
