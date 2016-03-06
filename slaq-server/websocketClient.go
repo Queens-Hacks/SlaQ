@@ -73,6 +73,13 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 
 		_, err = db.Exec("UPDATE lobbies SET last_message_id = ? WHERE id = ?", messageId, someLobby.channelId)
 
+		if strings.HasPrefix(incomingMessage.MessageText, "/gif ") {
+			desiredGif := strings.TrimPrefix(incomingMessage.MessageText, "/gif ")
+			go someLobby.sendGiphy(desiredGif, incomingMessage.MessageDisplayName, client.userId, messageId)
+			// Continue because we don't want to send this message out on the channel
+			continue
+		}
+
 		// TODO: Do magic with Slack commands
 
 		// Construct an internal struct, this case including our internal user id

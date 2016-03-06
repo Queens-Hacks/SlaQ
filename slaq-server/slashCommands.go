@@ -2,8 +2,36 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/paddycarey/gophy"
 	"log"
+	"net/url"
 )
+
+func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId int64, messageId int64) {
+	searchTerm = url.QueryEscape(searchTerm)
+	gophyOptions := &gophy.ClientOptions{}
+	gophyClient := gophy.NewClient(gophyOptions)
+
+	// Search for the particular gif with the parameters
+	// "" -> rating (.e.g PG, PG-13, etc)... We want it all
+	// 1 is the number of entries, we just want one
+	// 0 is the offet, how many pages
+	gifs, num, err := gophyClient.SearchGifs(searchTerm, "", 1, 0)
+	if err != nil {
+		log.Println("error searching giphy: ", err)
+		return
+	}
+	if num > 0 {
+		imageUrl := gifs[0].Images.FixedWidth.URL
+		giphyMessage := "$GIF|" + imageUrl
+		theLobby.broadcast <- &internalMessage{
+			MessageText:        []byte(giphyMessage),
+			MessageDisplayName: []byte(authorName),
+			MessageAuthorId:    userId,
+			MessageId:          messageId,
+		}
+	}
+}
 
 func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringMessageId int64) {
 	rows, err := db.Query("SELECT * FROM messages WHERE channel_msg_id = ? AND channel_id = ?", messageToStar, theLobby.channelId)
