@@ -118,11 +118,33 @@
 	    _this.messageSendUtil = _this.messageSendUtil.bind(_this);
 	    _this.handleUpdateTop = _this.handleUpdateTop.bind(_this);
 	    _this.grabCourseInfo = _this.grabCourseInfo.bind(_this);
+	    _this.grabOldMessages = _this.grabOldMessages.bind(_this);
 	
 	    return _this;
 	  }
 	
 	  _createClass(ChatBox, [{
+	    key: "grabOldMessages",
+	    value: function grabOldMessages(course) {
+	      var _this2 = this;
+	
+	      (0, _browserRequest2.default)("/getSomeMessages/" + course + "/10", function (err, res, bod) {
+	        if (!err && res.statusCode == 200) {
+	          var top = JSON.parse(bod);
+	          var worked = top.map(function (msg) {
+	            return {
+	              name: msg.MessageDisplayName,
+	              id: msg.MessageId,
+	              text: msg.MessageText,
+	              stars: msg.NumStars
+	            };
+	          });
+	          // console.log(worked)
+	          _this2.setState({ messages: worked });
+	        }
+	      });
+	    }
+	  }, {
 	    key: "handleNewMessage",
 	    value: function handleNewMessage(messageInfo) {
 	
@@ -181,19 +203,19 @@
 	  }, {
 	    key: "handleUpdateTop",
 	    value: function handleUpdateTop() {
-	      var _this2 = this;
+	      var _this3 = this;
 	
 	      (0, _browserRequest2.default)("/getMostStarred/10", function (err, res, bod) {
 	        if (!err && res.statusCode == 200) {
 	          var top = JSON.parse(bod);
-	          _this2.setState({ top: top });
+	          _this3.setState({ top: top });
 	        }
 	      });
 	    }
 	  }, {
 	    key: "grabCourseInfo",
 	    value: function grabCourseInfo(course) {
-	      var _this3 = this;
+	      var _this4 = this;
 	
 	      var a = course.split("");
 	      var isNum = function isNum(c) {
@@ -214,19 +236,19 @@
 	            title: top[0].courses[0].title,
 	            description: top[0].courses[0].description
 	          };
-	          _this3.setState({ courseInfo: courseInfo });
+	          _this4.setState({ courseInfo: courseInfo });
 	        }
 	      });
 	    }
 	  }, {
 	    key: "componentDidMount",
 	    value: function componentDidMount() {
-	      var _this4 = this;
+	      var _this5 = this;
 	
 	      var course = window.location.toString().split('?')[1] || "General";
 	      this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
 	      this.grabCourseInfo(course);
-	
+	      this.grabOldMessages(course);
 	      this.state.socket.onmessage = function (msg) {
 	        var parsed = JSON.parse(msg.data);
 	        var payload = {
@@ -235,7 +257,7 @@
 	          text: parsed.MessageText,
 	          stars: parsed.NumStars
 	        };
-	        _this4.handleNewMessage(payload);
+	        _this5.handleNewMessage(payload);
 	      };
 	
 	      this.handleUpdateTop();
@@ -247,7 +269,7 @@
 	      (0, _browserRequest2.default)("/getMyCourses", function (err, res, bod) {
 	        // console.log("MY COURSES: " + err + res + bod)
 	        if (!err && res.statusCode == 200) {
-	          _this4.setState({ courses: JSON.parse(bod) });
+	          _this5.setState({ courses: JSON.parse(bod) });
 	        }
 	      });
 	    }
@@ -284,7 +306,7 @@
 	  _createClass(TopList, [{
 	    key: "render",
 	    value: function render() {
-	      var _this6 = this;
+	      var _this7 = this;
 	
 	      var msgs = this.props.list || [];
 	      var messageNodes = msgs.map(function (msg) {
@@ -294,7 +316,7 @@
 	          text: msg.MessageText,
 	          stars: msg.NumStars
 	        };
-	        return _react2.default.createElement(MessageCard, { key: payload.id, data: payload, starMessageHandler: _this6.props.starMessageHandler });
+	        return _react2.default.createElement(MessageCard, { key: payload.id, data: payload, starMessageHandler: _this7.props.starMessageHandler });
 	      });
 	      infoCard = "";
 	      if (this.props.courseInfo != null) {
@@ -385,10 +407,10 @@
 	  _createClass(MessageList, [{
 	    key: "render",
 	    value: function render() {
-	      var _this9 = this;
+	      var _this10 = this;
 	
 	      var messageNodes = this.props.messages.map(function (msg) {
-	        return _react2.default.createElement(MessageCard, { key: msg.id, data: msg, starMessageHandler: _this9.props.starMessageHandler });
+	        return _react2.default.createElement(MessageCard, { key: msg.id, data: msg, starMessageHandler: _this10.props.starMessageHandler });
 	      });
 	      return _react2.default.createElement(
 	        "ul",

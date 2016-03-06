@@ -34,8 +34,29 @@ export class ChatBox extends React.Component {
     this.messageSendUtil = this.messageSendUtil.bind(this);
     this.handleUpdateTop = this.handleUpdateTop.bind(this);
     this.grabCourseInfo = this.grabCourseInfo.bind(this);
+    this.grabOldMessages = this.grabOldMessages.bind(this);
+
 
   }
+  grabOldMessages(course){
+     request("/getSomeMessages/"+course+"/10", (err, res, bod) => {
+      if (!err && res.statusCode == 200) {
+        let top = JSON.parse(bod)
+        let worked = top.map((msg)=>{
+          return{
+         name: msg.MessageDisplayName,
+          id: msg.MessageId,
+         text: msg.MessageText,
+         stars: msg.NumStars
+         }
+        })
+        // console.log(worked)
+        this.setState({messages: worked});
+      }
+    })
+  }
+
+
   handleNewMessage(messageInfo) {
 
     if (messageInfo.name === "__ADMIN__") {
@@ -121,7 +142,7 @@ export class ChatBox extends React.Component {
     let course = window.location.toString().split('?')[1] || "General"
     this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
     this.grabCourseInfo(course)
-
+    this.grabOldMessages(course)
     this.state.socket.onmessage = (msg) => {
       let parsed = JSON.parse(msg.data)
       let payload = {
