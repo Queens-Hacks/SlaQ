@@ -43,6 +43,7 @@ func main() {
 
 	http.HandleFunc("/getMyCourses", getMyCoursesHandler)
 
+	http.HandleFunc("/getMostStarred/", getMostStarredMessages)
 	// ListenAndServe should never return, if it does, it's a fatal error
 	// We are wrapping http.DefaultServeMux in context.ClearHandler because gorilla tells
 	// us to... It is supposed used to prevent a resource leak.

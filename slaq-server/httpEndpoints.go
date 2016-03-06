@@ -105,3 +105,49 @@ func getSomeMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(messagesToSend)
 
 }
+
+func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
+	paths := strings.Split(r.URL.Path, "/")
+	if len(paths) != 3 {
+		http.Error(w, "Your URL is the wrong format, try /getMostStarred/n", http.StatusBadRequest)
+		return
+	}
+	numWanted := paths[2]
+	res, err := db.Query("select count(*) as 'numstars', messages.author_display_name, messages.message_text from stars join messages on messages.id = stars.message_id group by messages.id order by numstars desc limit ?;", numWanted)
+	if err != nil {
+		log.Println("error getting top stars from db", err)
+		http.Error(w, "error loading stars from db", http.StatusInternalServerError)
+		return
+	}
+	defer res.Close()
+
+	type topStarredMsg struct {
+		NumStars           int64
+		MessageDisplayName string
+		MessageText        string
+	}
+
+	var topStarredSlice []topStarredMsg
+
+	for res.Next() {
+		var NumStars int64
+		var MessageDisplayName string
+		var MessageText string
+		err = res.Scan(&NumStars, &MessageDisplayName, &MessageText)
+		if err != nil {
+			log.Println("error scanning in message", err)
+			http.Error(w, "error scanning stars from db", http.StatusInternalServerError)
+			return
+		}
+
+		oneMsg := topStarredMsg{
+			NumStars:           NumStars,
+			MessageDisplayName: MessageDisplayName,
+			MessageText:        MessageText,
+		}
+		topStarredSlice = append(topStarredSlice, oneMsg)
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	json.NewEncoder(w).Encode(topStarredSlice)
+}
