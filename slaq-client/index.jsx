@@ -15,14 +15,7 @@ export class ChatBox extends React.Component {
     super(props);
 
     this.state = {
-      messages: [
-        {
-          name: "TestUser",
-          id: -1,
-          text: "FIRST MESSAGE",
-          stars: 1
-        }
-      ],
+      messages: [],
       name: "Username",
       inputText: "",
       socket: null,
@@ -136,9 +129,11 @@ export class CourseList extends React.Component {
   render() {
     let CourseNodes = this.props.options.map((course) => {
       return (
-        <a key={course} href={"/room?" + course}>
-          <h3>{course}</h3>
-        </a>
+        <div key={course} className="CourseButton">
+          <a key={course} href={"/room?" + course}>
+            <h3>{course}</h3>
+          </a>
+        </div>
       )
     })
     return (
