@@ -174,7 +174,7 @@
 	    value: function componentDidMount() {
 	      var _this2 = this;
 	
-	      this.state.socket = new WebSocket("ws://" + window.location.split('/')[2] + "/ws/course/anycourse");
+	      this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/anycourse");
 	
 	      this.state.socket.onmessage = function (msg) {
 	        var parsed = JSON.parse(msg.data);

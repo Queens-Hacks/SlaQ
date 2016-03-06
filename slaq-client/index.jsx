@@ -78,7 +78,7 @@ export class ChatBox extends React.Component {
   }
   componentDidMount() {
 
-    this.state.socket = new WebSocket("ws://" + window.location.split('/')[2] + "/ws/course/anycourse");
+    this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/anycourse");
 
     this.state.socket.onmessage = (msg) => {
       let parsed = JSON.parse(msg.data)
