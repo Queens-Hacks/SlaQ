@@ -82,6 +82,7 @@ li {
   margin: 2px 2px;
   border-bottom: solid 1px #c7d7ee;
   border-radius: 4px;
+  font-size: 1.3em;
 }
 #form {
   width: 100%;
@@ -130,6 +131,33 @@ a:active {
   top: 10px;
   background-color: #F3ECE2;
   padding: 10px;
+}
+#TopList {
+  display: none;
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  width: 300px;
+}
+#TopList .commentInfo {
+  width: 90px;
+}
+#TopList li{
+    font-size: 1em;
+}
+#TopList h4{
+  background-color: rgba(120, 150, 130, 0.05);
+  padding: 2px 5px;
+  margin: 2px 2px;
+  border-bottom: solid 1px #c7d7ee;
+  border-radius: 4px;
+}
+
+#infoCard{
+  padding: 5px;
+  margin-bottom: 10px;
+  font-size: .9em;
+  text-align: justify;
 }
 #title h1 {
   text-align: center;
@@ -202,6 +230,11 @@ a:active {
   }
   #Courses {
     top: 140px;
+  }
+}
+@media only screen and (min-width: 1300px) {
+  #TopList {
+    display: block;
   }
 }
 .gif {

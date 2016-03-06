@@ -10,6 +10,7 @@ import request from 'browser-request'
 
 const url = "localhost:9999"
 
+const courseInfoQueryTemplate = _.template("http://159.203.112.6:3000/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>")
 export class ChatBox extends React.Component {
   constructor(props) {
     super(props);
@@ -19,7 +20,9 @@ export class ChatBox extends React.Component {
       name: "Username",
       inputText: "",
       socket: null,
-      courses: []
+      courses: [],
+      top: [],
+      courseInfo: null,
     };
     this.componentDidMount = this.componentDidMount.bind(this);
     this.handleNewMessage = this.handleNewMessage.bind(this);
@@ -29,9 +32,12 @@ export class ChatBox extends React.Component {
     this.handleInputTextChange = this.handleInputTextChange.bind(this);
     this.starMessageHandler = this.starMessageHandler.bind(this);
     this.messageSendUtil = this.messageSendUtil.bind(this);
+    this.handleUpdateTop = this.handleUpdateTop.bind(this);
+    this.grabCourseInfo = this.grabCourseInfo.bind(this);
 
   }
   handleNewMessage(messageInfo) {
+
     if (messageInfo.name === "__ADMIN__") {
       let starInfo = JSON.parse(messageInfo.text)
 
@@ -65,11 +71,10 @@ export class ChatBox extends React.Component {
   starMessageHandler(key, e) {
 
     // let changed = _.findWhere(this.state.messages, {id: key})
-    console.log("starring " + key.toString())
     this.messageSendUtil("/star " + key.toString(), this.state.name)
     // this.setState({messages:[changed]})
+    this.handleUpdateTop()
   }
-
   messageSendUtil(text, name) {
     var outgoingMessage = {
       MessageText: text,
@@ -77,9 +82,40 @@ export class ChatBox extends React.Component {
     };
     this.state.socket.send(JSON.stringify(outgoingMessage));
   }
+  handleUpdateTop() {
+    request("/getMostStarred/10", (err, res, bod) => {
+      if (!err && res.statusCode == 200) {
+        let top = JSON.parse(bod)
+        this.setState({top: top});
+      }
+    })
+  }
+  grabCourseInfo(course){
+
+    let a=course.split("");
+    let isNum = (c)=>{return (c.charCodeAt(0)<58)}
+    let number = _.filter(a,isNum).join("")
+    let code = _.reject(a,isNum).join("")
+
+     request(courseInfoQueryTemplate({code, number}), (err, res, bod) => {
+      if (!err && res.statusCode == 200) {
+        let top = JSON.parse(bod)
+        let courseInfo = {
+          subjtitle: top[0].title,
+          abbreviation: top[0].abbreviation,
+          number: top[0].courses[0].number,
+          title: top[0].courses[0].title,
+          description: top[0].courses[0].description
+        }
+        this.setState({courseInfo: courseInfo});
+      }
+    })
+
+  }
   componentDidMount() {
     let course = window.location.toString().split('?')[1] || "General"
     this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
+    this.grabCourseInfo(course)
 
     this.state.socket.onmessage = (msg) => {
       let parsed = JSON.parse(msg.data)
@@ -87,18 +123,16 @@ export class ChatBox extends React.Component {
         name: parsed.MessageDisplayName,
         id: parsed.MessageId,
         text: parsed.MessageText,
-        stars: 0
+        stars: parsed.NumStars
       }
       this.handleNewMessage(payload)
     }
 
+    this.handleUpdateTop()
+
     this.state.socket.onclose = function(event) {
       console.log(closed)
     }
-    // request({
-    //   method: 'POST',
-    //   url: 'http://localhost:9999/login'
-    // }, on_response)
 
     request("/getMyCourses", (err, res, bod) => {
       // console.log("MY COURSES: " + err + res + bod)
@@ -108,15 +142,52 @@ export class ChatBox extends React.Component {
 
     })
   }
-
   render() {
     return (
       <div id="chatContainer">
         <CourseList options={this.state.courses}/>
+        <TopList list={this.state.top} starMessageHandler={this.starMessageHandler} courseInfo={this.state.courseInfo}/>
         <div className='MessageList'>
           <MessageList messages={this.state.messages} starMessageHandler={this.starMessageHandler}/>
         </div>
         <InputForm name ={this.state.name} inputText={this.state.inputText} handleNameChange={this.handleNameChange} handleInputTextChange={this.handleInputTextChange} handlePostMessage={this.handlePostMessage}/>
+      </div>
+    )
+  }
+}
+
+export class TopList extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  render() {
+    var messageNodes = this.props.list.map((msg) => {
+      let payload = {
+        name: msg.MessageDisplayName,
+        id: msg.MessageId,
+        text: msg.MessageText,
+        stars: msg.NumStars
+      }
+      return (<MessageCard key={payload.id} data={payload} starMessageHandler={this.props.starMessageHandler}/>)
+    })
+    infoCard = ""
+    if(this.props.courseInfo!=null){
+      var infoCard =(<div id="infoCard">
+          <h2> {this.props.courseInfo.title}</h2>
+          <hr/>
+          <p> {this.props.courseInfo.description}</p>
+        </div>)
+    }
+    return (
+
+      <div id="TopList">
+        {infoCard}
+        <h4>
+          Top 10
+        </h4>
+        <ul id="topmessages">
+          {messageNodes}
+        </ul>
       </div>
     )
   }
@@ -150,8 +221,8 @@ export class MessageList extends React.Component {
   }
   render() {
 
-    var messageNodes = this.props.messages.map((course) => {
-      return (<MessageCard key={course.id} data={course} starMessageHandler={this.props.starMessageHandler}/>)
+    var messageNodes = this.props.messages.map((msg) => {
+      return (<MessageCard key={msg.id} data={msg} starMessageHandler={this.props.starMessageHandler}/>)
     })
     return (
       <ul id="messages">
@@ -182,7 +253,7 @@ export class MessageCard extends React.Component {
     super(props);
   }
   render() {
-    let hasStar = this.props.data.stars === 0
+    let hasStar = this.props.data.stars === undefined
     return (
       <li key ={this.props.data.id} onClick={this.props.starMessageHandler.bind(null, this.props.data.id)}>
         <span className={hasStar

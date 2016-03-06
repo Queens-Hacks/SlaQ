@@ -56,7 +56,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.MessageCard = exports.InputForm = exports.MessageList = exports.CourseList = exports.ChatBox = undefined;
+	exports.MessageCard = exports.InputForm = exports.MessageList = exports.CourseList = exports.TopList = exports.ChatBox = undefined;
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
@@ -89,6 +89,8 @@
 	
 	var url = "localhost:9999";
 	
+	var courseInfoQueryTemplate = _underscore2.default.template("http://159.203.112.6:3000/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>");
+	
 	var ChatBox = exports.ChatBox = function (_React$Component) {
 	  _inherits(ChatBox, _React$Component);
 	
@@ -102,7 +104,9 @@
 	      name: "Username",
 	      inputText: "",
 	      socket: null,
-	      courses: []
+	      courses: [],
+	      top: [],
+	      courseInfo: null
 	    };
 	    _this.componentDidMount = _this.componentDidMount.bind(_this);
 	    _this.handleNewMessage = _this.handleNewMessage.bind(_this);
@@ -112,6 +116,8 @@
 	    _this.handleInputTextChange = _this.handleInputTextChange.bind(_this);
 	    _this.starMessageHandler = _this.starMessageHandler.bind(_this);
 	    _this.messageSendUtil = _this.messageSendUtil.bind(_this);
+	    _this.handleUpdateTop = _this.handleUpdateTop.bind(_this);
+	    _this.grabCourseInfo = _this.grabCourseInfo.bind(_this);
 	
 	    return _this;
 	  }
@@ -119,6 +125,7 @@
 	  _createClass(ChatBox, [{
 	    key: "handleNewMessage",
 	    value: function handleNewMessage(messageInfo) {
+	
 	      if (messageInfo.name === "__ADMIN__") {
 	        var starInfo = JSON.parse(messageInfo.text);
 	
@@ -158,9 +165,9 @@
 	    value: function starMessageHandler(key, e) {
 	
 	      // let changed = _.findWhere(this.state.messages, {id: key})
-	      console.log("starring " + key.toString());
 	      this.messageSendUtil("/star " + key.toString(), this.state.name);
 	      // this.setState({messages:[changed]})
+	      this.handleUpdateTop();
 	    }
 	  }, {
 	    key: "messageSendUtil",
@@ -172,12 +179,51 @@
 	      this.state.socket.send(JSON.stringify(outgoingMessage));
 	    }
 	  }, {
+	    key: "handleUpdateTop",
+	    value: function handleUpdateTop() {
+	      var _this2 = this;
+	
+	      (0, _browserRequest2.default)("/getMostStarred/10", function (err, res, bod) {
+	        if (!err && res.statusCode == 200) {
+	          var top = JSON.parse(bod);
+	          _this2.setState({ top: top });
+	        }
+	      });
+	    }
+	  }, {
+	    key: "grabCourseInfo",
+	    value: function grabCourseInfo(course) {
+	      var _this3 = this;
+	
+	      var a = course.split("");
+	      var isNum = function isNum(c) {
+	        return c.charCodeAt(0) < 58;
+	      };
+	      var number = _underscore2.default.filter(a, isNum).join("");
+	      var code = _underscore2.default.reject(a, isNum).join("");
+	
+	      (0, _browserRequest2.default)(courseInfoQueryTemplate({ code: code, number: number }), function (err, res, bod) {
+	        if (!err && res.statusCode == 200) {
+	          var top = JSON.parse(bod);
+	          var courseInfo = {
+	            subjtitle: top[0].title,
+	            abbreviation: top[0].abbreviation,
+	            number: top[0].courses[0].number,
+	            title: top[0].courses[0].title,
+	            description: top[0].courses[0].description
+	          };
+	          _this3.setState({ courseInfo: courseInfo });
+	        }
+	      });
+	    }
+	  }, {
 	    key: "componentDidMount",
 	    value: function componentDidMount() {
-	      var _this2 = this;
+	      var _this4 = this;
 	
 	      var course = window.location.toString().split('?')[1] || "General";
 	      this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
+	      this.grabCourseInfo(course);
 	
 	      this.state.socket.onmessage = function (msg) {
 	        var parsed = JSON.parse(msg.data);
@@ -185,23 +231,21 @@
 	          name: parsed.MessageDisplayName,
 	          id: parsed.MessageId,
 	          text: parsed.MessageText,
-	          stars: 0
+	          stars: parsed.NumStars
 	        };
-	        _this2.handleNewMessage(payload);
+	        _this4.handleNewMessage(payload);
 	      };
+	
+	      this.handleUpdateTop();
 	
 	      this.state.socket.onclose = function (event) {
 	        console.log(closed);
 	      };
-	      // request({
-	      //   method: 'POST',
-	      //   url: 'http://localhost:9999/login'
-	      // }, on_response)
 	
 	      (0, _browserRequest2.default)("/getMyCourses", function (err, res, bod) {
 	        // console.log("MY COURSES: " + err + res + bod)
 	        if (!err && res.statusCode == 200) {
-	          _this2.setState({ courses: JSON.parse(bod) });
+	          _this4.setState({ courses: JSON.parse(bod) });
 	        }
 	      });
 	    }
@@ -212,6 +256,7 @@
 	        "div",
 	        { id: "chatContainer" },
 	        _react2.default.createElement(CourseList, { options: this.state.courses }),
+	        _react2.default.createElement(TopList, { list: this.state.top, starMessageHandler: this.starMessageHandler, courseInfo: this.state.courseInfo }),
 	        _react2.default.createElement(
 	          "div",
 	          { className: "MessageList" },
@@ -225,8 +270,72 @@
 	  return ChatBox;
 	}(_react2.default.Component);
 	
-	var CourseList = exports.CourseList = function (_React$Component2) {
-	  _inherits(CourseList, _React$Component2);
+	var TopList = exports.TopList = function (_React$Component2) {
+	  _inherits(TopList, _React$Component2);
+	
+	  function TopList(props) {
+	    _classCallCheck(this, TopList);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(TopList).call(this, props));
+	  }
+	
+	  _createClass(TopList, [{
+	    key: "render",
+	    value: function render() {
+	      var _this6 = this;
+	
+	      var messageNodes = this.props.list.map(function (msg) {
+	        var payload = {
+	          name: msg.MessageDisplayName,
+	          id: msg.MessageId,
+	          text: msg.MessageText,
+	          stars: msg.NumStars
+	        };
+	        return _react2.default.createElement(MessageCard, { key: payload.id, data: payload, starMessageHandler: _this6.props.starMessageHandler });
+	      });
+	      infoCard = "";
+	      if (this.props.courseInfo != null) {
+	        var infoCard = _react2.default.createElement(
+	          "div",
+	          { id: "infoCard" },
+	          _react2.default.createElement(
+	            "h2",
+	            null,
+	            " ",
+	            this.props.courseInfo.title
+	          ),
+	          _react2.default.createElement("hr", null),
+	          _react2.default.createElement(
+	            "p",
+	            null,
+	            " ",
+	            this.props.courseInfo.description
+	          )
+	        );
+	      }
+	      return _react2.default.createElement(
+	        "div",
+	        { id: "TopList" },
+	        infoCard,
+	        _react2.default.createElement(
+	          "h4",
+	          null,
+	          "Top 10"
+	        ),
+	        _react2.default.createElement(
+	          "ul",
+	          { id: "topmessages" },
+	          messageNodes
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return TopList;
+	}(_react2.default.Component);
+	
+	var CourseList = exports.CourseList = function (_React$Component3) {
+	  _inherits(CourseList, _React$Component3);
 	
 	  function CourseList(props) {
 	    _classCallCheck(this, CourseList);
@@ -263,8 +372,8 @@
 	  return CourseList;
 	}(_react2.default.Component);
 	
-	var MessageList = exports.MessageList = function (_React$Component3) {
-	  _inherits(MessageList, _React$Component3);
+	var MessageList = exports.MessageList = function (_React$Component4) {
+	  _inherits(MessageList, _React$Component4);
 	
 	  function MessageList(props) {
 	    _classCallCheck(this, MessageList);
@@ -275,10 +384,10 @@
 	  _createClass(MessageList, [{
 	    key: "render",
 	    value: function render() {
-	      var _this5 = this;
+	      var _this9 = this;
 	
-	      var messageNodes = this.props.messages.map(function (course) {
-	        return _react2.default.createElement(MessageCard, { key: course.id, data: course, starMessageHandler: _this5.props.starMessageHandler });
+	      var messageNodes = this.props.messages.map(function (msg) {
+	        return _react2.default.createElement(MessageCard, { key: msg.id, data: msg, starMessageHandler: _this9.props.starMessageHandler });
 	      });
 	      return _react2.default.createElement(
 	        "ul",
@@ -292,8 +401,8 @@
 	  return MessageList;
 	}(_react2.default.Component);
 	
-	var InputForm = exports.InputForm = function (_React$Component4) {
-	  _inherits(InputForm, _React$Component4);
+	var InputForm = exports.InputForm = function (_React$Component5) {
+	  _inherits(InputForm, _React$Component5);
 	
 	  function InputForm(props) {
 	    _classCallCheck(this, InputForm);
@@ -316,8 +425,8 @@
 	  return InputForm;
 	}(_react2.default.Component);
 	
-	var MessageCard = exports.MessageCard = function (_React$Component5) {
-	  _inherits(MessageCard, _React$Component5);
+	var MessageCard = exports.MessageCard = function (_React$Component6) {
+	  _inherits(MessageCard, _React$Component6);
 	
 	  function MessageCard(props) {
 	    _classCallCheck(this, MessageCard);
@@ -328,7 +437,7 @@
 	  _createClass(MessageCard, [{
 	    key: "render",
 	    value: function render() {
-	      var hasStar = this.props.data.stars === 0;
+	      var hasStar = this.props.data.stars === undefined;
 	      return _react2.default.createElement(
 	        "li",
 	        { key: this.props.data.id, onClick: this.props.starMessageHandler.bind(null, this.props.data.id) },
@@ -22419,7 +22528,7 @@
 	exports.push([module.id, "@import url(https://fonts.googleapis.com/css?family=Pacifico);", ""]);
 	
 	// module
-	exports.push([module.id, "html * {\n  font-family: \"Helvetica\";\n  margin: 0px;\n  padding: 0px;\n}\nbody, html, .container, #myApp {\n  height: 100%;\n}\n#chatContainer {\n  height: 100%;\n  max-width: 700px;\n  margin: auto;\n}\n.MessageList {\n  height: calc(100% - 35px);\n  width: 100%;\n  overflow-y: scroll;\n}\n#messages {\n  min-height: 100%;\n  display: flex;\n  flex-direction: column-reverse;\n  border-style: solid;\n  border-width: 1px;\n  border-color: rgba(255, 255, 255, 0.241);\n  background-color: rgba(255, 255, 255, 0.141);\n}\n.star, .starPlaceholder {\n  float: left;\n  width: 20px;\n  margin-left: -2px;\n  color: #000;\n  line-height: 1.6em;\n}\n.starPlaceholder {\n  opacity: .0;\n}\n.star::before {\n  content: \"\\2605\";\n  align-content: center;\n  width: 7px;\n  float: left;\n  font-size: 1.8em;\n  line-height: .9em;\n  margin: 0px;\n  padding: 0px;\n  color: #f39c12;\n  text-shadow: 1px 1px #FFF;\n}\n.commentInfo {\n  padding-left: 10px;\n  display: inline-block;\n  width: 150px;\n  border-style: bold;\n}\n.commentInfo * {\n  overflow-x: hidden;\n}\n.commentInfo::after {\n  content: \": \";\n  opacity: 0.3;\n  float: right;\n  right: 0;\n  padding-right: 10px;\n}\n.commentBody {}\nbody {\n  text-align: center;\n  padding: 2px;\n  margin: 0px auto;\n  background-color: #F3ECE2;\n}\nul {\n  text-align: left;\n  list-style-type: none;\n  /*overflow-y: scroll;*/\n}\nli {\n  background-color: rgba(120, 150, 130, 0.05);\n  padding: 2px 5px;\n  margin: 2px 2px;\n  border-bottom: solid 1px #c7d7ee;\n  border-radius: 4px;\n}\n#form {\n  width: 100%;\n}\n#desiredName {\n  width: 90px;\n  border-radius: 4px 0px 0px 4px;\n}\n#userMessage {\n  width: calc( 100% - 90px);\n  border-radius: 0px 4px 4px 0px;\n}\ninput[type=\"text\"] {\n  background-color: rgba(160, 160, 140, 0.03);\n  padding: 4px;\n  border: solid 1px #fff;\n  transition: box-shadow 0.3s;\n}\nbox-shadow: inset 1px 1px 2px 0 #c9c9c9;\ninput[type=\"text\"]:focus, input[type=\"text\"].focus {\n  box-shadow: inset 1px 1px 2px 0 #707070;\n}\na:link {\n  color: #67818A;\n  background-color: transparent;\n  text-decoration: none\n}\na:visited {\n  color: #8A8A96;\n  background-color: transparent;\n  text-decoration: none\n}\na:hover {\n  color: #67818A;\n  background-color: transparent;\n  text-decoration: underline\n}\na:active {\n  color: black;\n  background-color: transparent;\n  text-decoration: underline\n}\n#title {\n  position: absolute;\n  left: 10px;\n  top: 10px;\n  background-color: #F3ECE2;\n  padding: 10px;\n}\n#title h1 {\n  text-align: center;\n  font-family: 'Pacifico', cursive;\n  font-weight: 400;\n  font-style: italic;\n  font-size-adjust: none;\n  font-language-override: normal;\n  font-kerning: auto;\n  font-feature-settings: \"kern\", \"liga\", \"dlig\", \"hlig\", \"cswh\";\n  font-synthesis: weight style;\n  font-size: 2.8em;\n  /*line-height: 1.2;*/\n}\n#Courses {\n  position: absolute;\n  left: 0px;\n  top: 80px;\n  background-color: #F3ECE2;\n}\n\n/*#Courses h3 {\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 1px;\n  padding: 3px;\n  margin: 3px;\n  font-size: 1em;\n}*/\n\n.CourseButton {\n  position: relative;\n  /*vertical-align: top;*/\n  width: 100%;\n  height: 40px;\n  padding: 0;\n  color: white !important;\n  text-align: center;\n  /*text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);*/\n  background: #f39c12;\n  border: 0;\n  border-bottom: 4px solid #e8930c;\n  cursor: pointer;\n  -webkit-box-shadow: inset 0 -2px #e8930c;\n  box-shadow: inset 0 -2px #e8930c;\n  padding: 7px;\n  margin-top: 7px;\n}\n.CourseButton a, h3 {\n  font-size: 17px;\n  color: white !important;\n}\n.CourseButton:active {\n  top: 1px;\n  outline: none;\n  -webkit-box-shadow: none;\n  box-shadow: none;\n}\n@media only screen and (min-width: 800px) {\n  #title h1 {\n    font-size: 5em;\n  }\n  .CourseButton {\n    height: 60px;\n    padding: 15px;\n    margin-top: 15px;\n  }\n  .CourseButton a, h3 {\n    font-size: 22px;\n  }\n  #Courses {\n    top: 140px;\n  }\n}\n.gif {\n  border-radius: 15px;\n}\n", ""]);
+	exports.push([module.id, "html * {\n  font-family: \"Helvetica\";\n  margin: 0px;\n  padding: 0px;\n}\nbody, html, .container, #myApp {\n  height: 100%;\n}\n#chatContainer {\n  height: 100%;\n  max-width: 700px;\n  margin: auto;\n}\n.MessageList {\n  height: calc(100% - 35px);\n  width: 100%;\n  overflow-y: scroll;\n}\n#messages {\n  min-height: 100%;\n  display: flex;\n  flex-direction: column-reverse;\n  border-style: solid;\n  border-width: 1px;\n  border-color: rgba(255, 255, 255, 0.241);\n  background-color: rgba(255, 255, 255, 0.141);\n}\n.star, .starPlaceholder {\n  float: left;\n  width: 20px;\n  margin-left: -2px;\n  color: #000;\n  line-height: 1.6em;\n}\n.starPlaceholder {\n  opacity: .0;\n}\n.star::before {\n  content: \"\\2605\";\n  align-content: center;\n  width: 7px;\n  float: left;\n  font-size: 1.8em;\n  line-height: .9em;\n  margin: 0px;\n  padding: 0px;\n  color: #f39c12;\n  text-shadow: 1px 1px #FFF;\n}\n.commentInfo {\n  padding-left: 10px;\n  display: inline-block;\n  width: 150px;\n  border-style: bold;\n}\n.commentInfo * {\n  overflow-x: hidden;\n}\n.commentInfo::after {\n  content: \": \";\n  opacity: 0.3;\n  float: right;\n  right: 0;\n  padding-right: 10px;\n}\n.commentBody {}\nbody {\n  text-align: center;\n  padding: 2px;\n  margin: 0px auto;\n  background-color: #F3ECE2;\n}\nul {\n  text-align: left;\n  list-style-type: none;\n  /*overflow-y: scroll;*/\n}\nli {\n  background-color: rgba(120, 150, 130, 0.05);\n  padding: 2px 5px;\n  margin: 2px 2px;\n  border-bottom: solid 1px #c7d7ee;\n  border-radius: 4px;\n  font-size: 1.3em;\n}\n#form {\n  width: 100%;\n}\n#desiredName {\n  width: 90px;\n  border-radius: 4px 0px 0px 4px;\n}\n#userMessage {\n  width: calc( 100% - 90px);\n  border-radius: 0px 4px 4px 0px;\n}\ninput[type=\"text\"] {\n  background-color: rgba(160, 160, 140, 0.03);\n  padding: 4px;\n  border: solid 1px #fff;\n  transition: box-shadow 0.3s;\n}\nbox-shadow: inset 1px 1px 2px 0 #c9c9c9;\ninput[type=\"text\"]:focus, input[type=\"text\"].focus {\n  box-shadow: inset 1px 1px 2px 0 #707070;\n}\na:link {\n  color: #67818A;\n  background-color: transparent;\n  text-decoration: none\n}\na:visited {\n  color: #8A8A96;\n  background-color: transparent;\n  text-decoration: none\n}\na:hover {\n  color: #67818A;\n  background-color: transparent;\n  text-decoration: underline\n}\na:active {\n  color: black;\n  background-color: transparent;\n  text-decoration: underline\n}\n#title {\n  position: absolute;\n  left: 10px;\n  top: 10px;\n  background-color: #F3ECE2;\n  padding: 10px;\n}\n#TopList {\n  display: none;\n  position: absolute;\n  right: 15px;\n  top: 10px;\n  width: 300px;\n}\n#TopList .commentInfo {\n  width: 90px;\n}\n#TopList li{\n    font-size: 1em;\n}\n#TopList h4{\n  background-color: rgba(120, 150, 130, 0.05);\n  padding: 2px 5px;\n  margin: 2px 2px;\n  border-bottom: solid 1px #c7d7ee;\n  border-radius: 4px;\n}\n\n#infoCard{\n  padding: 5px;\n  margin-bottom: 10px;\n  font-size: .9em;\n  text-align: justify;\n}\n#title h1 {\n  text-align: center;\n  font-family: 'Pacifico', cursive;\n  font-weight: 400;\n  font-style: italic;\n  font-size-adjust: none;\n  font-language-override: normal;\n  font-kerning: auto;\n  font-feature-settings: \"kern\", \"liga\", \"dlig\", \"hlig\", \"cswh\";\n  font-synthesis: weight style;\n  font-size: 2.8em;\n  /*line-height: 1.2;*/\n}\n#Courses {\n  position: absolute;\n  left: 0px;\n  top: 80px;\n  background-color: #F3ECE2;\n}\n\n/*#Courses h3 {\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 1px;\n  padding: 3px;\n  margin: 3px;\n  font-size: 1em;\n}*/\n\n.CourseButton {\n  position: relative;\n  /*vertical-align: top;*/\n  width: 100%;\n  height: 40px;\n  padding: 0;\n  color: white !important;\n  text-align: center;\n  /*text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);*/\n  background: #f39c12;\n  border: 0;\n  border-bottom: 4px solid #e8930c;\n  cursor: pointer;\n  -webkit-box-shadow: inset 0 -2px #e8930c;\n  box-shadow: inset 0 -2px #e8930c;\n  padding: 7px;\n  margin-top: 7px;\n}\n.CourseButton a, h3 {\n  font-size: 17px;\n  color: white !important;\n}\n.CourseButton:active {\n  top: 1px;\n  outline: none;\n  -webkit-box-shadow: none;\n  box-shadow: none;\n}\n@media only screen and (min-width: 800px) {\n  #title h1 {\n    font-size: 5em;\n  }\n  .CourseButton {\n    height: 60px;\n    padding: 15px;\n    margin-top: 15px;\n  }\n  .CourseButton a, h3 {\n    font-size: 22px;\n  }\n  #Courses {\n    top: 140px;\n  }\n}\n@media only screen and (min-width: 1300px) {\n  #TopList {\n    display: block;\n  }\n}\n.gif {\n  border-radius: 15px;\n}\n", ""]);
 	
 	// exports
 
