@@ -50,6 +50,13 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 
 		// Escape HTML in case the users are being nasty
 		incomingMessage.MessageText = html.EscapeString(string(incomingMessage.MessageText))
+		incomingMessage.MessageDisplayName = html.EscapeString(string(incomingMessage.MessageDisplayName))
+
+		if incomingMessage.MessageDisplayName == "__ADMIN__" {
+			// Don't allow the users to us magic username
+			log.Println("Rejecting message from", client.userId, "because it used the magic admin username. ")
+			continue
+		}
 
 		// This replaces the internal database ID with our custom ID, that is incremented
 		// per room, instead of globally
