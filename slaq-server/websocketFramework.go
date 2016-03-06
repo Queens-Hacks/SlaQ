@@ -28,8 +28,9 @@ func getALobby(courseCode string) lobby {
 		for rows.Next() {
 			var id int64
 			var course_code string
+			var last_message_id int64
 
-			err = rows.Scan(&id, &course_code)
+			err = rows.Scan(&id, &course_code, &last_message_id)
 			if err != nil {
 				log.Println("Scan error", err)
 				break
@@ -41,8 +42,9 @@ func getALobby(courseCode string) lobby {
 				register:   make(chan *wsClient),
 				deregister: make(chan *wsClient),
 				channelId:  id,
-				// TODO: Store next message id in database
-				nextMessageId:    1,
+				// In the database, we store the previous message id
+				// so we need to increment it once on boot up
+				nextMessageId:    last_message_id + 1,
 				nextMessageMutex: &sync.Mutex{},
 			}
 			wasInDatabase = true
@@ -50,7 +52,7 @@ func getALobby(courseCode string) lobby {
 		}
 		if !wasInDatabase {
 			// Construct a new lobby struct, since it hasn't been created yet
-			res, err := db.Exec("INSERT INTO lobbies(id, course_code) VALUES(?, ?)", nil, courseCode)
+			res, err := db.Exec("INSERT INTO lobbies(id, course_code, last_message_id) VALUES(?, ?, ?)", nil, courseCode, 1)
 			if err != nil {
 				fmt.Println("Error inserting lobby into database", err)
 			}

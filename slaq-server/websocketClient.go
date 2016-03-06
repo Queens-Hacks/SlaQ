@@ -57,12 +57,25 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 		// It is unclear if there is a use of the unique global ID.
 		messageId := someLobby.getNextMessageId()
 
+		if strings.HasPrefix(incomingMessage.MessageText, "/star ") {
+			messageToStar := strings.TrimPrefix(incomingMessage.MessageText, "/star ")
+			go someLobby.sendStar(messageToStar, client.userId, messageId)
+			// TODO: Fix this code duplication
+			_, err = db.Exec("UPDATE lobbies SET last_message_id = ? WHERE id = ?", messageId, someLobby.channelId)
+			// Continue because we don't want to send this message out on the channel
+			continue
+		}
+
 		_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText, messageId, incomingMessage.MessageDisplayName, client.userId)
 		if err != nil {
 			log.Println("Error recording message to database", err)
 		}
 
+		_, err = db.Exec("UPDATE lobbies SET last_message_id = ? WHERE id = ?", messageId, someLobby.channelId)
+
 		// TODO: Do magic with Slack commands
+
+		// TODO: parse /star [messageid]
 
 		// Construct an internal struct, this case including our internal user id
 		outgoingMessage := &internalMessage{MessageText: []byte(incomingMessage.MessageText), MessageAuthorId: client.userId, MessageDisplayName: []byte(incomingMessage.MessageDisplayName), MessageId: messageId}
