@@ -71,11 +71,9 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 			theSession.Values["icsUrl"] = user.ics_url
 			theSession.Values["username"] = user.netid
 			theSession.Save(r, w)
-			// TODO: Make this a redirect so the user isn't asked if they would like to double POST
-			fmt.Fprintf(w, "You logged in successfully")
+			http.Redirect(w, r, "/", 302)
 		} else {
-			// TODO: Make this a redirect
-			fmt.Fprintf(w, "bad input parameters")
+			http.Redirect(w, r, "/", 302)
 		}
 
 	}
