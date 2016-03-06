@@ -82,11 +82,7 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 
 		// TODO: Do magic with Slack commands
 
-		// Construct an internal struct, this case including our internal user id
-		outgoingMessage := &internalMessage{MessageText: []byte(incomingMessage.MessageText), MessageAuthorId: client.userId, MessageDisplayName: []byte(incomingMessage.MessageDisplayName), MessageId: messageId}
-
-		// Send the message out for broadcast
-		someLobby.broadcast <- outgoingMessage
+		go someLobby.linkifyMessage(incomingMessage.MessageText, client.userId, incomingMessage.MessageDisplayName, messageId)
 	}
 
 }

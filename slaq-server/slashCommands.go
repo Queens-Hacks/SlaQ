@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/mvdan/xurls"
 	"github.com/paddycarey/gophy"
 	"log"
 	"net/url"
@@ -99,7 +100,7 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 	i, err := strconv.ParseInt(messageToStar, 10, 64)
 	if err != nil {
 		log.Println("couldnt parse string into an integer", err)
-		return 
+		return
 	}
 
 	outgoingMessage := StarMessage{
@@ -121,5 +122,29 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 		MessageAuthorId:    0,
 		MessageId:          starringMessageId,
 	}
+
+}
+
+func (theLobby *lobby) linkifyMessage(messageString string, messageAuthorId int64, messageDisplayName string, messageId int64) {
+
+	linkifiedMessage := xurls.Relaxed.ReplaceAllStringFunc(messageString, func(inString string) string {
+		url, err := url.Parse(inString)
+		var scheme string
+		if err == nil {
+			scheme = url.Scheme
+		} else {
+			log.Println("error parsing url: ", err)
+		}
+		if scheme == "" {
+			url.Scheme = "http"
+		}
+		return `<a href="` + url.String() + `">` + inString + `</a>`
+	})
+
+	// Construct an internal struct, this case including our internal user id
+	outgoingMessage := &internalMessage{MessageText: []byte(linkifiedMessage), MessageAuthorId: messageAuthorId, MessageDisplayName: []byte(messageDisplayName), MessageId: messageId}
+
+	// Send the message out for broadcast
+	theLobby.broadcast <- outgoingMessage
 
 }
