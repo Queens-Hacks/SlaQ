@@ -78,8 +78,6 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 			log.Println("Error recording message to database", err)
 		}
 
-		_, err = db.Exec("UPDATE lobbies SET last_message_id = ? WHERE id = ?", messageId, someLobby.channelId)
-
 		if strings.HasPrefix(incomingMessage.MessageText, "/gif ") {
 			desiredGif := strings.TrimPrefix(incomingMessage.MessageText, "/gif ")
 			go someLobby.sendGiphy(desiredGif, incomingMessage.MessageDisplayName, client.userId, messageId)

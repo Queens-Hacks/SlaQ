@@ -180,6 +180,10 @@ func (theLobby *lobby) getNextMessageId() int64 {
 	theLobby.nextMessageMutex.Lock()
 	nextId := theLobby.nextMessageId
 	theLobby.nextMessageId += 1
+	_, err := db.Exec("UPDATE lobbies SET last_message_id = ? WHERE id = ?", nextId, theLobby.channelId)
+	if err != nil {
+		log.Println("Error updating DB message id", err)
+	}
 	theLobby.nextMessageMutex.Unlock()
 	return nextId
 }
