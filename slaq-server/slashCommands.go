@@ -5,8 +5,10 @@ import (
 	"github.com/mvdan/xurls"
 	"github.com/paddycarey/gophy"
 	"log"
+	"math/rand"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId int64, messageId int64) {
@@ -167,6 +169,145 @@ func (theLobby *lobby) sendCoolFace(messageDisplayName string, messageAuthorId i
 
 	// Construct an internal struct, this case including our internal user id
 	outgoingMessage := &internalMessage{MessageText: []byte(coolFaceMessage), MessageAuthorId: messageAuthorId, MessageDisplayName: []byte(messageDisplayName), MessageId: messageId}
+
+	// Send the message out for broadcast
+	theLobby.broadcast <- outgoingMessage
+}
+
+func (theLobby *lobby) sendIsTimsOpen() {
+	currentTime := time.Now()
+
+	var locations []string
+
+	/* *** JDUC *** */
+
+	switch currentTime.Weekday() {
+	case time.Monday:
+		fallthrough
+	case time.Tuesday:
+		fallthrough
+	case time.Wednesday:
+		fallthrough
+	case time.Thursday:
+		fallthrough
+	case time.Friday:
+		if currentTime.Hour() == 7 && currentTime.Minute() >= 30 {
+			locations = append(locations, "JDUC (Until 3pm)")
+		} else if currentTime.Hour() == 7 && currentTime.Minute() < 30 {
+
+		} else if currentTime.Hour() > 7 && currentTime.Hour() < 15 {
+			locations = append(locations, "JDUC (Until 3pm)")
+		} else if currentTime.Hour() == 15 && currentTime.Minute() == 0 {
+			locations = append(locations, "JDUC (Until 3pm)")
+		}
+	case time.Saturday:
+		// Do nothing
+	case time.Sunday:
+		// Do nothing
+	}
+
+	/* *** Queen's Centre *** */
+
+	switch currentTime.Weekday() {
+	case time.Monday:
+		fallthrough
+	case time.Tuesday:
+		fallthrough
+	case time.Wednesday:
+		fallthrough
+	case time.Thursday:
+		fallthrough
+	case time.Friday:
+		if currentTime.Hour() >= 8 && currentTime.Hour() < 23 {
+			locations = append(locations, "Queen's Centre (until 11pm)")
+		} else if currentTime.Hour() == 23 && currentTime.Minute() == 0 {
+			locations = append(locations, "Queen's Centre (until 11pm)")
+		}
+	case time.Saturday:
+		fallthrough
+	case time.Sunday:
+		if currentTime.Hour() >= 8 && currentTime.Hour() < 19 {
+			locations = append(locations, "Queen's Centre (until 7pm)")
+		} else if currentTime.Hour() == 19 && currentTime.Minute() == 0 {
+			locations = append(locations, "Queen's Centre (until 7pm)")
+		}
+	}
+
+	/* *** Self-Serve BioSci *** */
+
+	switch currentTime.Weekday() {
+	case time.Monday:
+		fallthrough
+	case time.Tuesday:
+		fallthrough
+	case time.Wednesday:
+		fallthrough
+	case time.Thursday:
+		if currentTime.Hour() == 8 && currentTime.Minute() >= 30 {
+			locations = append(locations, "Self-Serve @ BioSci (until 3:30pm)")
+		} else if currentTime.Hour() == 8 && currentTime.Minute() < 30 {
+
+		} else if currentTime.Hour() > 8 && currentTime.Hour() < 15 {
+			locations = append(locations, "Self-Serve @ BioSci (until 3:30pm)")
+		} else if currentTime.Hour() == 15 && currentTime.Minute() <= 30 {
+			locations = append(locations, "Self-Serve @ BioSci (until 3:30pm)")
+		}
+	case time.Friday:
+		if currentTime.Hour() == 8 && currentTime.Minute() >= 30 {
+			locations = append(locations, "Self-Serve @ BioSci (until 1:30pm)")
+		} else if currentTime.Hour() == 8 && currentTime.Minute() < 30 {
+
+		} else if currentTime.Hour() > 8 && currentTime.Hour() < 13 {
+			locations = append(locations, "Self-Serve @ BioSci (until 1:30pm)")
+		} else if currentTime.Hour() == 13 && currentTime.Minute() <= 30 {
+			locations = append(locations, "Self-Serve @ BioSci (until 1:30pm)")
+		}
+	}
+
+	/* *** BioSci *** */
+	switch currentTime.Weekday() {
+	case time.Monday:
+		fallthrough
+	case time.Tuesday:
+		fallthrough
+	case time.Wednesday:
+		fallthrough
+	case time.Thursday:
+		if currentTime.Hour() >= 7 && currentTime.Hour() < 18 {
+			locations = append(locations, "BioSci (until 6pm)")
+		} else if currentTime.Hour() == 18 && currentTime.Minute() == 0 {
+			locations = append(locations, "BioSci (until 6pm)")
+		}
+	case time.Friday:
+		if currentTime.Hour() >= 7 && currentTime.Hour() < 15 {
+			locations = append(locations, "BioSci (until 3:30pm)")
+		} else if currentTime.Hour() == 15 && currentTime.Minute() <= 30 {
+			locations = append(locations, "BioSci (until 3:30pm)")
+		}
+	}
+
+	messageId := theLobby.getNextMessageId()
+
+	var outgoingMessage *internalMessage
+
+	friendlyTimeString := currentTime.Format("3:04PM")
+
+	if len(locations) == 0 {
+		// Construct an internal struct, this case including our internal user id
+		outgoingMessage = &internalMessage{MessageText: []byte("It is " + friendlyTimeString + " and there are no Tims open! :( "), MessageAuthorId: 0, MessageDisplayName: []byte("The Admins"), MessageId: messageId}
+	} else {
+
+		outString := "It is " + friendlyTimeString + " and the following Tims are open: "
+		for i, v := range locations {
+			if i != len(locations)-1 {
+				outString += v + ", "
+			} else {
+				outString += v
+			}
+		}
+
+		outgoingMessage = &internalMessage{MessageText: []byte(outString), MessageAuthorId: 0, MessageDisplayName: []byte("System"), MessageId: messageId}
+	}
 
 	// Send the message out for broadcast
 	theLobby.broadcast <- outgoingMessage
