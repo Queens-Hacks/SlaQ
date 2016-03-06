@@ -18,7 +18,7 @@ func parseIcsFromUrl(icsUrl string) ([]string, error) {
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(icsUrl)
 
-	// This will probably fire if the internet is now
+	// This will probably fire if the internet is down
 	if err != nil {
 		log.Println("Cannot get calendar:", err)
 		return make([]string, 0), errors.New("Couldn't get calendar url")
