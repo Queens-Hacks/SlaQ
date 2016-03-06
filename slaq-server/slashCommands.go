@@ -6,10 +6,10 @@ import (
 	"github.com/paddycarey/gophy"
 	"log"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
-	"net/http"
 )
 
 func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId int64, messageId int64) {
