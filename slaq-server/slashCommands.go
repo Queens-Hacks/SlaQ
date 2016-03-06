@@ -5,6 +5,7 @@ import (
 	"github.com/paddycarey/gophy"
 	"log"
 	"net/url"
+	"strconv"
 )
 
 func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId int64, messageId int64) {
@@ -48,7 +49,10 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 	var channel_msg_id int64
 	var author_display_name string
 	var author_id int64
+
+	foundOne := false
 	for rows.Next() {
+		foundOne = true
 		err = rows.Scan(&message_to_star_real_id, &channel_id, &message_text, &channel_msg_id, &author_display_name, &author_id)
 		if err != nil {
 			log.Println("error scanning row", err)
@@ -57,6 +61,11 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 		break
 	}
 	rows.Close()
+
+	if !foundOne {
+		// We don't actually have a message... Let's back out
+		return
+	}
 
 	// Now that we have the true message id, insert our star
 	_, err = db.Exec("INSERT INTO stars(id, starrer_id, starree_id, message_id) VALUES (?, ?, ?, ?);", nil, starrerId, author_id, message_to_star_real_id)
@@ -87,8 +96,14 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 		NumStars  int
 	}
 
+	i, err := strconv.ParseInt(messageToStar, 10, 64)
+	if err != nil {
+		log.Println("couldnt parse string into an integer", err)
+		return 
+	}
+
 	outgoingMessage := StarMessage{
-		MessageId: starringMessageId,
+		MessageId: i,
 		NumStars:  starCounter,
 	}
 
