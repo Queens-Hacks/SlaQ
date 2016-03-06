@@ -8,7 +8,6 @@ import ReactDOM from 'react-dom';
 import _ from 'underscore'
 import request from 'browser-request'
 
-const url = "localhost:9999"
 
 const courseInfoQueryTemplate = _.template("https://slaqchat.ml:4888/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>")
 export class ChatBox extends React.Component {
@@ -68,6 +67,7 @@ export class ChatBox extends React.Component {
       newMessages[index].stars = starInfo.NumStars
       this.setState({messages: newMessages})
 
+
     } else {
 
       this.setState({
@@ -75,6 +75,8 @@ export class ChatBox extends React.Component {
       })
 
     }
+    document.getElementById("MessageList").scrollTop= 99999999;
+
   }
   handlePostMessage(e) {
     if (e.keyCode === 13) {
@@ -173,7 +175,7 @@ export class ChatBox extends React.Component {
       <div id="chatContainer">
         <CourseList options={this.state.courses}/>
         <TopList list={this.state.top} starMessageHandler={this.starMessageHandler} courseInfo={this.state.courseInfo}/>
-        <div className='MessageList'>
+        <div id='MessageList' className='MessageList'>
           <MessageList messages={this.state.messages} starMessageHandler={this.starMessageHandler}/>
         </div>
         <InputForm name ={this.state.name} inputText={this.state.inputText} handleNameChange={this.handleNameChange} handleInputTextChange={this.handleInputTextChange} handlePostMessage={this.handlePostMessage}/>

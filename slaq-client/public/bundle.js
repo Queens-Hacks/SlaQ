@@ -87,8 +87,6 @@
 	__webpack_require__(162);
 	__webpack_require__(171);
 	
-	var url = "localhost:9999";
-	
 	var courseInfoQueryTemplate = _underscore2.default.template("https://slaqchat.ml:4888/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>");
 	
 	var ChatBox = exports.ChatBox = function (_React$Component) {
@@ -162,6 +160,7 @@
 	          messages: [messageInfo].concat(this.state.messages)
 	        });
 	      }
+	      document.getElementById("MessageList").scrollTop = 99999999;
 	    }
 	  }, {
 	    key: "handlePostMessage",
@@ -283,7 +282,7 @@
 	        _react2.default.createElement(TopList, { list: this.state.top, starMessageHandler: this.starMessageHandler, courseInfo: this.state.courseInfo }),
 	        _react2.default.createElement(
 	          "div",
-	          { className: "MessageList" },
+	          { id: "MessageList", className: "MessageList" },
 	          _react2.default.createElement(MessageList, { messages: this.state.messages, starMessageHandler: this.starMessageHandler })
 	        ),
 	        _react2.default.createElement(InputForm, { name: this.state.name, inputText: this.state.inputText, handleNameChange: this.handleNameChange, handleInputTextChange: this.handleInputTextChange, handlePostMessage: this.handlePostMessage })
