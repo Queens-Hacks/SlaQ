@@ -89,7 +89,7 @@
 	
 	var url = "localhost:9999";
 	
-	var courseInfoQueryTemplate = _underscore2.default.template("http://159.203.112.6:3000/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>");
+	var courseInfoQueryTemplate = _underscore2.default.template("https://slaqchat.ml:4888/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>");
 	
 	var ChatBox = exports.ChatBox = function (_React$Component) {
 	  _inherits(ChatBox, _React$Component);
@@ -246,7 +246,7 @@
 	      var _this5 = this;
 	
 	      var course = window.location.toString().split('?')[1] || "General";
-	      this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
+	      this.state.socket = new WebSocket("wss://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
 	      this.grabCourseInfo(course);
 	      this.grabOldMessages(course);
 	      this.state.socket.onmessage = function (msg) {

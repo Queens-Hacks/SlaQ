@@ -10,7 +10,7 @@ import request from 'browser-request'
 
 const url = "localhost:9999"
 
-const courseInfoQueryTemplate = _.template("http://159.203.112.6:3000/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>")
+const courseInfoQueryTemplate = _.template("https://slaqchat.ml:4888/subjects?abbreviation=eq.<%= code %>&select=title,abbreviation,courses{number,title,description}&courses.number=eq.<%= number %>")
 export class ChatBox extends React.Component {
   constructor(props) {
     super(props);
@@ -140,7 +140,7 @@ export class ChatBox extends React.Component {
   }
   componentDidMount() {
     let course = window.location.toString().split('?')[1] || "General"
-    this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
+    this.state.socket = new WebSocket("wss://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
     this.grabCourseInfo(course)
     this.grabOldMessages(course)
     this.state.socket.onmessage = (msg) => {
