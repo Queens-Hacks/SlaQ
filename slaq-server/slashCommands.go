@@ -25,7 +25,7 @@ func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId in
 	}
 	if num > 0 {
 		imageUrl := gifs[0].Images.FixedWidth.URL
-		giphyMessage := "$GIF|" + imageUrl
+		giphyMessage := `<img src="` + imageUrl + `" alt="` + searchTerm + `" title="` + searchTerm + `">`
 		theLobby.broadcast <- &internalMessage{
 			MessageText:        []byte(giphyMessage),
 			MessageDisplayName: []byte(authorName),
