@@ -1,0 +1,51 @@
+@import url(https://fonts.googleapis.com/css?family=Pacifico);
+html * {
+  font-family: "Helvetica";
+  margin: 0px;
+  padding: 0px;
+}
+body, html, .container, #myApp {
+  height: 100%;
+}
+#chatContainer {
+  height: 100%;
+  max-width: 700px;
+  margin: auto;
+}
+body {
+  text-align: censter;
+  padding: 2px;
+  margin: 0px auto;
+  background-color: #F3ECE2;
+}
+form {
+  width: 300px;
+  margin: auto;
+  text-align: right;
+}
+input[type="text"], input[type="password"]  {
+  background-color: rgba(160, 160, 140, 0.03);
+  padding: 4px;
+  border: solid 1px #fff;
+  transition: box-shadow 0.3s;
+box-shadow: inset 1px 1px 2px 0 #c9c9c9;
+
+}
+input[type="text"]:focus, input[type="password"]:focus {
+  box-shadow: inset 1px 1px 2px 0 #707070;
+
+}
+ h1 {
+    padding-top:150px;
+
+  text-align: center;
+  font-family: 'Pacifico', cursive;
+  font-weight: 400;
+  font-style: italic;
+  font-size-adjust: none;
+  font-language-override: normal;
+  font-kerning: auto;
+  font-feature-settings: "kern", "liga", "dlig", "hlig", "cswh";
+  font-synthesis: weight style;
+  font-size: 2.8em;
+}
