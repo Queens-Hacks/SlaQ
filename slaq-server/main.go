@@ -21,7 +21,7 @@ func main() {
 	// This is the websocket connection link - should upgrade to a websocket connection
 	http.HandleFunc("/ws/course/", arbitraryWebsocketHandler)
 	// Catch-all, including the home page
-	http.HandleFunc("/", indexPageHandler)
+	http.Handle("/", http.FileServer(http.Dir("../slaq-client/public")))
 
 	// This is an endpoint that returns one message over a GET (not websockets)
 	// The URL style will be /singleMessage/courseCode/messageId
@@ -58,7 +58,6 @@ func initializeDatabase() {
 		// We can't do anything without the database
 		log.Fatal(err)
 	}
-	// Defer closing until the function exits
 
 	// Forces the database to connect and writes to disk
 	db.Ping()

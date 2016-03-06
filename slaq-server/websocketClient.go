@@ -75,8 +75,6 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 
 		// TODO: Do magic with Slack commands
 
-		// TODO: parse /star [messageid]
-
 		// Construct an internal struct, this case including our internal user id
 		outgoingMessage := &internalMessage{MessageText: []byte(incomingMessage.MessageText), MessageAuthorId: client.userId, MessageDisplayName: []byte(incomingMessage.MessageDisplayName), MessageId: messageId}
 
