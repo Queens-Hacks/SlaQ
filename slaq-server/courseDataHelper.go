@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"github.com/apognu/gocal"
@@ -11,7 +12,11 @@ import (
 
 func parseIcsFromUrl(icsUrl string) ([]string, error) {
 	// Download the .ics from the website
-	resp, err := http.Get(icsUrl)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	resp, err := client.Get(icsUrl)
 
 	// This will probably fire if the internet is now
 	if err != nil {

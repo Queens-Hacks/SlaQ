@@ -51,6 +51,8 @@ export class ChatBox extends React.Component {
         return [curtop];
       }
     }
+    // var scroller = document.getElementById("messages");
+  //  scroller.scrollTop(scroller[0].scrollHeight);
     window.scroll(0, findPos(document.getElementById("bottom")));
   }
   handlePostMessage(e) {
@@ -77,8 +79,8 @@ export class ChatBox extends React.Component {
     // this.setState({messages:[changed]})
   }
   componentDidMount() {
-
-    this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/anycourse");
+    let course = window.location.toString().split('?')[1]
+    this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/"+course);
 
     this.state.socket.onmessage = (msg) => {
       let parsed = JSON.parse(msg.data)
@@ -100,9 +102,8 @@ export class ChatBox extends React.Component {
     // }, on_response)
 
     request("/getMyCourses", (err, res, bod) => {
-      console.log("MY COURSES: " + err + res + bod)
+      // console.log("MY COURSES: " + err + res + bod)
       if (!err && res.statusCode == 200) {
-        console.log(bod)
         this.setState({courses: JSON.parse(bod)})
       }
 
@@ -127,11 +128,9 @@ export class CourseList extends React.Component {
     super(props);
   }
   render() {
-    let CourseNodes = ""
-    // console.log(this.props.options)
-    // var CourseNodes = this.props.options.map((course) => {
-    // return (<a href={course}><h3>{course}</h3></a>)
-    // })
+    let CourseNodes = this.props.options.map((course) => {
+    return (<a key={course} href={"/room?"+course}><h3>{course}</h3></a>)
+    })
     return (
       <div id="Courses">
         {CourseNodes}
