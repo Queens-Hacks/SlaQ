@@ -22,7 +22,7 @@ export class ChatBox extends React.Component {
       socket: null,
       courses: [],
       top: [],
-      courseInfo: null,
+      courseInfo: null
     };
     this.componentDidMount = this.componentDidMount.bind(this);
     this.handleNewMessage = this.handleNewMessage.bind(this);
@@ -90,14 +90,16 @@ export class ChatBox extends React.Component {
       }
     })
   }
-  grabCourseInfo(course){
+  grabCourseInfo(course) {
 
-    let a=course.split("");
-    let isNum = (c)=>{return (c.charCodeAt(0)<58)}
-    let number = _.filter(a,isNum).join("")
-    let code = _.reject(a,isNum).join("")
+    let a = course.split("");
+    let isNum = (c) => {
+      return (c.charCodeAt(0) < 58)
+    }
+    let number = _.filter(a, isNum).join("")
+    let code = _.reject(a, isNum).join("")
 
-     request(courseInfoQueryTemplate({code, number}), (err, res, bod) => {
+    request(courseInfoQueryTemplate({code, number}), (err, res, bod) => {
       if (!err && res.statusCode == 200) {
         let top = JSON.parse(bod)
         let courseInfo = {
@@ -171,12 +173,16 @@ export class TopList extends React.Component {
       return (<MessageCard key={payload.id} data={payload} starMessageHandler={this.props.starMessageHandler}/>)
     })
     infoCard = ""
-    if(this.props.courseInfo!=null){
-      var infoCard =(<div id="infoCard">
-          <h2> {this.props.courseInfo.title}</h2>
+    if (this.props.courseInfo != null) {
+      var infoCard = (
+        <div id="infoCard">
+          <h2>
+            {this.props.courseInfo.title}</h2>
           <hr/>
-          <p> {this.props.courseInfo.description}</p>
-        </div>)
+          <p>
+            {this.props.courseInfo.description}</p>
+        </div>
+      )
     }
     return (
 

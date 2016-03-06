@@ -301,14 +301,12 @@
 	          _react2.default.createElement(
 	            "h2",
 	            null,
-	            " ",
 	            this.props.courseInfo.title
 	          ),
 	          _react2.default.createElement("hr", null),
 	          _react2.default.createElement(
 	            "p",
 	            null,
-	            " ",
 	            this.props.courseInfo.description
 	          )
 	        );
