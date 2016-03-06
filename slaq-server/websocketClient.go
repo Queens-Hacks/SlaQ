@@ -85,6 +85,12 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 			continue
 		}
 
+		if strings.HasPrefix(incomingMessage.MessageText, "/quote") {
+			go someLobby.sendQuote(incomingMessage.MessageDisplayName, client.userId, messageId)
+			// Continue because we don't want to send this message out on the channel
+			continue
+		}
+
 		if strings.HasPrefix(incomingMessage.MessageText, "/face") {
 			go someLobby.sendCoolFace(incomingMessage.MessageDisplayName, client.userId, messageId)
 			// Continue because we don't want to send this message out on the channel

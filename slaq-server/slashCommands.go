@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"net/http"
 )
 
 func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId int64, messageId int64) {
@@ -310,5 +311,34 @@ func (theLobby *lobby) sendIsTimsOpen() {
 	}
 
 	// Send the message out for broadcast
+	theLobby.broadcast <- outgoingMessage
+}
+
+func (theLobby *lobby) sendQuote(messageDisplayName string, messageAuthorId int64, messageId int64) {
+	res, err := http.Get("http://api.icndb.com/jokes/random?firstName=John&amp;lastName=Doe")
+	if err != nil {
+		log.Println("error getting quote", err)
+		return
+	}
+	var f interface{}
+	err = json.NewDecoder(res.Body).Decode(&f)
+	if err != nil {
+		log.Println("error decoding json", err)
+		return
+	}
+
+	m := f.(map[string]interface{})
+
+	successType := m["type"].(string)
+	if successType != "success" {
+		log.Println("quotes api issue")
+		return
+	}
+
+	valueInterface := m["value"].(map[string]interface{})
+	theJoke := valueInterface["joke"].(string)
+
+	outgoingMessage := &internalMessage{MessageText: []byte(theJoke), MessageAuthorId: 0, MessageDisplayName: []byte("System"), MessageId: messageId}
+
 	theLobby.broadcast <- outgoingMessage
 }
