@@ -70,7 +70,7 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 			theSession.Values["icsUrl"] = user.ics_url
 			theSession.Values["username"] = user.netid
 			theSession.Save(r, w)
-			http.Redirect(w, r, "/", 302)
+			http.Redirect(w, r, "/room", 302)
 		} else {
 			http.Redirect(w, r, "/", 302)
 		}
