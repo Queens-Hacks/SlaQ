@@ -115,7 +115,6 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 	}
 
 	// ... from a magic sender
-	// TODO: Make it so normal users cannot send with the user __ADMIN__
 	theLobby.broadcast <- &internalMessage{
 		MessageText:        marshalled,
 		MessageDisplayName: []byte("__ADMIN__"),

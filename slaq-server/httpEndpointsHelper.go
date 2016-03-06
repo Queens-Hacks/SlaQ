@@ -19,9 +19,10 @@ func getChannelIdFromCourseCode(courseCode string) (int64, error) {
 	// in the outer scope, versus within the rows.Next() scope
 	var channelId int64
 	var course_code string
+	var last_message_id int64
 	var foundCourse bool
 	for rows.Next() {
-		err = rows.Scan(&channelId, &course_code)
+		err = rows.Scan(&channelId, &course_code, &last_message_id)
 		// We can close here, because we know there will only ever be one - also if we look
 		// at the logic of the if condition, we either break or return
 		// We never continue into another iteration
@@ -53,7 +54,8 @@ func readOneMessageFromRows(rows *sql.Rows) (externalMessage, error) {
 	var dbMessageText string
 	var dbChannelMessageId int64
 	var dbAuthorName string
-	err := rows.Scan(&dbMessageId, &dbChannelId, &dbMessageText, &dbChannelMessageId, &dbAuthorName)
+	var dbAuthorId int64
+	err := rows.Scan(&dbMessageId, &dbChannelId, &dbMessageText, &dbChannelMessageId, &dbAuthorName, &dbAuthorId)
 
 	if err != nil {
 		log.Println("Error scanning messagestable row into variables: ", err)
