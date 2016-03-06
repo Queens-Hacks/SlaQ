@@ -163,7 +163,8 @@ export class TopList extends React.Component {
     super(props);
   }
   render() {
-    var messageNodes = this.props.list.map((msg) => {
+    let msgs = this.props.list || []
+    var messageNodes = msgs.map((msg) => {
       let payload = {
         name: msg.MessageDisplayName,
         id: msg.MessageId,
