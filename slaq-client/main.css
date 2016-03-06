@@ -7,11 +7,10 @@ html * {
 body, html, .container, #myApp {
   height: 100%;
 }
-#chatContainer{
+#chatContainer {
   height: 100%;
   max-width: 700px;
   margin: auto;
-
 }
 .MessageList {
   height: calc(100% - 35px);
@@ -141,4 +140,18 @@ a:active {
   font-synthesis: weight style;
   font-size: 2.8em;
   line-height: 1.2;
+}
+#Courses {
+  position: absolute;
+  left: 20px;
+  top: 100px;
+
+}
+
+#Courses h3{
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 1px;
+  padding: 3px;
+  margin: 3px;
 }
