@@ -206,7 +206,7 @@
 	
 	        if (!err && res.statusCode == 200) {
 	          var top = JSON.parse(bod);
-	          if (top === undefined) return;
+	          if (top.length === 0) return;
 	          var courseInfo = {
 	            subjtitle: top[0].title,
 	            abbreviation: top[0].abbreviation,

@@ -103,7 +103,7 @@ export class ChatBox extends React.Component {
 
       if (!err && res.statusCode == 200) {
         let top = JSON.parse(bod)
-        if (top === undefined)
+        if (top.length===0)
           return
         let courseInfo = {
           subjtitle: top[0].title,
