@@ -87,6 +87,16 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 			continue
 		}
 
+		if strings.HasPrefix(incomingMessage.MessageText, "/face") {
+			go someLobby.sendCoolFace(incomingMessage.MessageDisplayName, client.userId, messageId)
+			// Continue because we don't want to send this message out on the channel
+			continue
+		}
+
+		if strings.Contains(strings.ToLower(incomingMessage.MessageText), "is tims open") {
+			go someLobby.sendIsTimsOpen()
+		}
+
 		// TODO: Do magic with Slack commands
 
 		go someLobby.linkifyMessage(incomingMessage.MessageText, client.userId, incomingMessage.MessageDisplayName, messageId)

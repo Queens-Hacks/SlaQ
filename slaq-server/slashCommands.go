@@ -161,3 +161,13 @@ func (theLobby *lobby) linkifyMessage(messageString string, messageAuthorId int6
 	theLobby.broadcast <- outgoingMessage
 
 }
+
+func (theLobby *lobby) sendCoolFace(messageDisplayName string, messageAuthorId int64, messageId int64) {
+	coolFaceMessage := `<span class="coolface">` + coolFaces[rand.Intn(len(coolFaces))] + `</span>`
+
+	// Construct an internal struct, this case including our internal user id
+	outgoingMessage := &internalMessage{MessageText: []byte(coolFaceMessage), MessageAuthorId: messageAuthorId, MessageDisplayName: []byte(messageDisplayName), MessageId: messageId}
+
+	// Send the message out for broadcast
+	theLobby.broadcast <- outgoingMessage
+}
