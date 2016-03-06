@@ -113,6 +113,14 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	numWanted := paths[2]
+	// Nasty SQL query
+	// We want to get all the stars that are associated with every particular message_id
+	// This is a one-to-many relationship: one message may have many stars
+	// We want to count the stars per message, since we don't care about their contents (we don't care
+	// about who made the star)
+
+	// So we group by the particular message id
+	// and we limit based on the parameter in the URL
 	res, err := db.Query("select count(*) as 'numstars', messages.author_display_name, messages.message_text from stars join messages on messages.id = stars.message_id group by messages.id order by numstars desc limit ?;", numWanted)
 	if err != nil {
 		log.Println("error getting top stars from db", err)
@@ -121,6 +129,7 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 	}
 	defer res.Close()
 
+	// Custom struct for the front end
 	type topStarredMsg struct {
 		NumStars           int64
 		MessageDisplayName string
@@ -140,6 +149,7 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Create one top starred message struct
 		oneMsg := topStarredMsg{
 			NumStars:           NumStars,
 			MessageDisplayName: MessageDisplayName,
@@ -148,6 +158,7 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 		topStarredSlice = append(topStarredSlice, oneMsg)
 	}
 
+	// Send this array to the front end
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(w).Encode(topStarredSlice)
 }
