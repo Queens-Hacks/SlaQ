@@ -203,8 +203,10 @@
 	      var code = _underscore2.default.reject(a, isNum).join("");
 	
 	      (0, _browserRequest2.default)(courseInfoQueryTemplate({ code: code, number: number }), function (err, res, bod) {
+	
 	        if (!err && res.statusCode == 200) {
 	          var top = JSON.parse(bod);
+	          if (top === undefined) return;
 	          var courseInfo = {
 	            subjtitle: top[0].title,
 	            abbreviation: top[0].abbreviation,

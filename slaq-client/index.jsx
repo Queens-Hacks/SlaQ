@@ -100,8 +100,11 @@ export class ChatBox extends React.Component {
     let code = _.reject(a, isNum).join("")
 
     request(courseInfoQueryTemplate({code, number}), (err, res, bod) => {
+
       if (!err && res.statusCode == 200) {
         let top = JSON.parse(bod)
+        if (top === undefined)
+          return
         let courseInfo = {
           subjtitle: top[0].title,
           abbreviation: top[0].abbreviation,
