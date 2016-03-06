@@ -194,9 +194,9 @@ export class MessageCard extends React.Component {
           {' '}
           {this.props.data.name}
         </span>
-        <span className="commentBody">
-          {this.props.data.text}
-        </span>
+        <span className="commentBody" dangerouslySetInnerHTML={{
+          __html: this.props.data.text
+        }}/>
       </li>
     )
   }
