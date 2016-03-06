@@ -131,10 +131,10 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 
 	// Custom struct for the front end
 	type topStarredMsg struct {
-		MessageId int64
-		NumStars int64
+		MessageId          int64
+		NumStars           int64
 		MessageDisplayName string
-		MessageText string
+		MessageText        string
 	}
 
 	var topStarredSlice []topStarredMsg
@@ -153,10 +153,10 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 
 		// Create one top starred message struct
 		oneMsg := topStarredMsg{
-			NumStars: NumStars,
-			MessageDisplayName:  MessageDisplayName,
-			MessageText:  MessageText,
-			MessageId: MessageId,
+			NumStars:           NumStars,
+			MessageDisplayName: MessageDisplayName,
+			MessageText:        MessageText,
+			MessageId:          MessageId,
 		}
 		topStarredSlice = append(topStarredSlice, oneMsg)
 	}
