@@ -338,7 +338,7 @@ func (theLobby *lobby) sendQuote(messageDisplayName string, messageAuthorId int6
 	valueInterface := m["value"].(map[string]interface{})
 	theJoke := valueInterface["joke"].(string)
 
-	outgoingMessage := &internalMessage{MessageText: []byte(theJoke), MessageAuthorId: 0, MessageDisplayName: []byte("System"), MessageId: messageId}
+	outgoingMessage := &internalMessage{MessageText: []byte(theJoke), MessageAuthorId: messageAuthorId, MessageDisplayName: []byte(messageDisplayName), MessageId: messageId}
 
 	theLobby.broadcast <- outgoingMessage
 }
