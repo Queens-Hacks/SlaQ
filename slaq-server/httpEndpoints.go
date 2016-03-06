@@ -121,7 +121,7 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 
 	// So we group by the particular message id
 	// and we limit based on the parameter in the URL
-	res, err := db.Query("select count(*) as 'numstars', messages.author_display_name, messages.message_text from stars join messages on messages.id = stars.message_id group by messages.id order by numstars desc limit ?;", numWanted)
+	res, err := db.Query("select count(*) as 'numstars', messages.author_display_name, messages.message_text, messages.id from stars join messages on messages.id = stars.message_id group by messages.id order by numstars desc limit ?;", numWanted)
 	if err != nil {
 		log.Println("error getting top stars from db", err)
 		http.Error(w, "error loading stars from db", http.StatusInternalServerError)
@@ -131,9 +131,10 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 
 	// Custom struct for the front end
 	type topStarredMsg struct {
-		NumStars           int64
+		MessageId int64
+		NumStars int64
 		MessageDisplayName string
-		MessageText        string
+		MessageText string
 	}
 
 	var topStarredSlice []topStarredMsg
@@ -142,7 +143,8 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 		var NumStars int64
 		var MessageDisplayName string
 		var MessageText string
-		err = res.Scan(&NumStars, &MessageDisplayName, &MessageText)
+		var MessageId int64
+		err = res.Scan(&NumStars, &MessageDisplayName, &MessageText, &MessageId)
 		if err != nil {
 			log.Println("error scanning in message", err)
 			http.Error(w, "error scanning stars from db", http.StatusInternalServerError)
@@ -151,9 +153,10 @@ func getMostStarredMessages(w http.ResponseWriter, r *http.Request) {
 
 		// Create one top starred message struct
 		oneMsg := topStarredMsg{
-			NumStars:           NumStars,
-			MessageDisplayName: MessageDisplayName,
-			MessageText:        MessageText,
+			NumStars: NumStars,
+			MessageDisplayName:  MessageDisplayName,
+			MessageText:  MessageText,
+			MessageId: MessageId,
 		}
 		topStarredSlice = append(topStarredSlice, oneMsg)
 	}
