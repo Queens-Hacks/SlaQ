@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gorilla/sessions"
 	"html/template"
 	"log"
