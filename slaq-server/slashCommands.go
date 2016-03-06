@@ -68,6 +68,20 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 		return
 	}
 
+	// now that we have the real id, let's make sure this is this particular user's first star
+	rows, err = db.Query("select * from stars where starrer_id = ? and message_id = ?;", starrerId, message_to_star_real_id)
+	if err != nil {
+		log.Println("error searching for existing star")
+		return
+	}
+
+	for rows.Next() {
+		log.Println("user prevented from double starring: ", starrerId)
+		rows.Close()
+		return
+	}
+	rows.Close()
+
 	// Now that we have the true message id, insert our star
 	_, err = db.Exec("INSERT INTO stars(id, starrer_id, starree_id, message_id) VALUES (?, ?, ?, ?);", nil, starrerId, author_id, message_to_star_real_id)
 	if err != nil {
