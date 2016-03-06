@@ -44,7 +44,7 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 
 		// We don't allow blank messages, or messages that are just whitespace
 		if strings.TrimSpace(string(incomingMessage.MessageText)) == "" {
-			log.Println("Rejecting message from " + string(client.userId) + " because it contains only whitespace. ")
+			log.Println("Rejecting message from", client.userId, "because it contains only whitespace. ")
 			continue
 		}
 
