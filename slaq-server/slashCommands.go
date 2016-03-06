@@ -35,7 +35,13 @@ func (theLobby *lobby) sendGiphy(searchTerm string, authorName string, userId in
 			MessageAuthorId:    userId,
 			MessageId:          messageId,
 		}
+
+		_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, theLobby.channelId, giphyMessage, messageId, authorName, userId)
+		if err != nil {
+			log.Println("Error recording message to database", err)
+		}
 	}
+
 }
 
 func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringMessageId int64) {
@@ -138,7 +144,6 @@ func (theLobby *lobby) sendStar(messageToStar string, starrerId int64, starringM
 		MessageAuthorId:    0,
 		MessageId:          starringMessageId,
 	}
-
 }
 
 func (theLobby *lobby) linkifyMessage(messageString string, messageAuthorId int64, messageDisplayName string, messageId int64) {
@@ -163,6 +168,11 @@ func (theLobby *lobby) linkifyMessage(messageString string, messageAuthorId int6
 	// Send the message out for broadcast
 	theLobby.broadcast <- outgoingMessage
 
+	_, err := db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, theLobby.channelId, linkifiedMessage, messageId, messageDisplayName, messageAuthorId)
+	if err != nil {
+		log.Println("Error recording message to database", err)
+	}
+
 }
 
 func (theLobby *lobby) sendCoolFace(messageDisplayName string, messageAuthorId int64, messageId int64) {
@@ -173,6 +183,11 @@ func (theLobby *lobby) sendCoolFace(messageDisplayName string, messageAuthorId i
 
 	// Send the message out for broadcast
 	theLobby.broadcast <- outgoingMessage
+
+	_, err := db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, theLobby.channelId, coolFaceMessage, messageId, messageDisplayName, messageAuthorId)
+	if err != nil {
+		log.Println("Error recording message to database", err)
+	}
 }
 
 func (theLobby *lobby) sendIsTimsOpen() {
@@ -310,6 +325,11 @@ func (theLobby *lobby) sendIsTimsOpen() {
 		outgoingMessage = &internalMessage{MessageText: []byte(outString), MessageAuthorId: 0, MessageDisplayName: []byte("System"), MessageId: messageId}
 	}
 
+	_, err := db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, theLobby.channelId, outgoingMessage.MessageText, messageId, "System", 0)
+	if err != nil {
+		log.Println("Error recording message to database", err)
+	}
+
 	// Send the message out for broadcast
 	theLobby.broadcast <- outgoingMessage
 }
@@ -341,4 +361,9 @@ func (theLobby *lobby) sendQuote(messageDisplayName string, messageAuthorId int6
 	outgoingMessage := &internalMessage{MessageText: []byte(theJoke), MessageAuthorId: messageAuthorId, MessageDisplayName: []byte(messageDisplayName), MessageId: messageId}
 
 	theLobby.broadcast <- outgoingMessage
+
+	_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, theLobby.channelId, theJoke, messageId, messageDisplayName, messageAuthorId)
+	if err != nil {
+		log.Println("Error recording message to database", err)
+	}
 }

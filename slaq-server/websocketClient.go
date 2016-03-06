@@ -71,39 +71,31 @@ func (client *wsClient) readMessageLoop(someLobby *lobby) {
 			_, err = db.Exec("UPDATE lobbies SET last_message_id = ? WHERE id = ?", messageId, someLobby.channelId)
 			// Continue because we don't want to send this message out on the channel
 			continue
-		}
-
-		_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText, messageId, incomingMessage.MessageDisplayName, client.userId)
-		if err != nil {
-			log.Println("Error recording message to database", err)
-		}
-
-		if strings.HasPrefix(incomingMessage.MessageText, "/gif ") {
+		} else if strings.HasPrefix(incomingMessage.MessageText, "/gif ") {
 			desiredGif := strings.TrimPrefix(incomingMessage.MessageText, "/gif ")
 			go someLobby.sendGiphy(desiredGif, incomingMessage.MessageDisplayName, client.userId, messageId)
 			// Continue because we don't want to send this message out on the channel
 			continue
-		}
-
-		if strings.HasPrefix(incomingMessage.MessageText, "/quote") {
+		} else if strings.HasPrefix(incomingMessage.MessageText, "/quote") {
 			go someLobby.sendQuote(incomingMessage.MessageDisplayName, client.userId, messageId)
 			// Continue because we don't want to send this message out on the channel
 			continue
-		}
-
-		if strings.HasPrefix(incomingMessage.MessageText, "/face") {
+		} else if strings.HasPrefix(incomingMessage.MessageText, "/face") {
 			go someLobby.sendCoolFace(incomingMessage.MessageDisplayName, client.userId, messageId)
 			// Continue because we don't want to send this message out on the channel
 			continue
-		}
-
-		if strings.Contains(strings.ToLower(incomingMessage.MessageText), "is tims open") {
+		} else if strings.Contains(strings.ToLower(incomingMessage.MessageText), "is tims open") {
 			go someLobby.sendIsTimsOpen()
+			_, err = db.Exec("INSERT INTO messages(id, channel_id, message_text, channel_msg_id, author_display_name, author_id) VALUES(?, ?, ?, ?, ?, ?)", nil, someLobby.channelId, incomingMessage.MessageText, messageId, incomingMessage.MessageDisplayName, client.userId)
+			if err != nil {
+				log.Println("Error recording message to database", err)
+			}
+		} else {
+			go someLobby.linkifyMessage(incomingMessage.MessageText, client.userId, incomingMessage.MessageDisplayName, messageId)
 		}
 
 		// TODO: Do magic with Slack commands
 
-		go someLobby.linkifyMessage(incomingMessage.MessageText, client.userId, incomingMessage.MessageDisplayName, messageId)
 	}
 
 }
