@@ -35,33 +35,30 @@ export class ChatBox extends React.Component {
     this.handleNameChange = this.handleNameChange.bind(this);
     this.handleInputTextChange = this.handleInputTextChange.bind(this);
     this.starMessageHandler = this.starMessageHandler.bind(this);
+    this.messageSendUtil = this.messageSendUtil.bind(this);
 
   }
   handleNewMessage(messageInfo) {
-    this.setState({
-      messages: [messageInfo].concat(this.state.messages)
-    })
+    if (messageInfo.name === "__ADMIN__") {
+      let starInfo = JSON.parse(messageInfo.text)
 
-    function findPos(obj) {
-      var curtop = 0;
-      if (obj.offsetParent) {
-        do {
-          curtop += obj.offsetTop;
-        } while (obj = obj.offsetParent);
-        return [curtop];
-      }
+      let toChange = _.findWhere(this.state.messages, {id: starInfo.MessageId})
+      let index = _.indexOf(this.state.messages, toChange)
+      let newMessages = _.clone(this.state.messages)
+      newMessages[index].stars = starInfo.NumStars
+      this.setState({messages: newMessages})
+
+    } else {
+
+      this.setState({
+        messages: [messageInfo].concat(this.state.messages)
+      })
+
     }
-    // var scroller = document.getElementById("messages");
-  //  scroller.scrollTop(scroller[0].scrollHeight);
-    window.scroll(0, findPos(document.getElementById("bottom")));
   }
   handlePostMessage(e) {
     if (e.keyCode === 13) {
-      var outgoingMessage = {
-        MessageText: this.state.inputText,
-        MessageDisplayName: this.state.name.slice(0, 15)
-      };
-      this.state.socket.send(JSON.stringify(outgoingMessage));
+      this.messageSendUtil(this.state.inputText, this.state.name.slice(0, 15))
       this.setState({inputText: ""})
       return false
     }
@@ -74,13 +71,22 @@ export class ChatBox extends React.Component {
   }
   starMessageHandler(key, e) {
 
-    let changed = _.findWhere(this.state.messages, {id: key})
-    // console.log(changed)
+    // let changed = _.findWhere(this.state.messages, {id: key})
+    console.log("starring " + key.toString())
+    this.messageSendUtil("/star " + key.toString(), this.state.name)
     // this.setState({messages:[changed]})
+  }
+
+  messageSendUtil(text, name) {
+    var outgoingMessage = {
+      MessageText: text,
+      MessageDisplayName: name
+    };
+    this.state.socket.send(JSON.stringify(outgoingMessage));
   }
   componentDidMount() {
     let course = window.location.toString().split('?')[1]
-    this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/"+course);
+    this.state.socket = new WebSocket("ws://" + window.location.toString().split('/')[2] + "/ws/course/" + course);
 
     this.state.socket.onmessage = (msg) => {
       let parsed = JSON.parse(msg.data)
@@ -129,7 +135,11 @@ export class CourseList extends React.Component {
   }
   render() {
     let CourseNodes = this.props.options.map((course) => {
-    return (<a key={course} href={"/room?"+course}><h3>{course}</h3></a>)
+      return (
+        <a key={course} href={"/room?" + course}>
+          <h3>{course}</h3>
+        </a>
+      )
     })
     return (
       <div id="Courses">
@@ -146,7 +156,7 @@ export class MessageList extends React.Component {
   render() {
 
     var messageNodes = this.props.messages.map((course) => {
-      return (<MessageCard data={course} starMessageHandler={this.props.starMessageHandler}/>)
+      return (<MessageCard key={course.id} data={course} starMessageHandler={this.props.starMessageHandler}/>)
     })
     return (
       <ul id="messages">

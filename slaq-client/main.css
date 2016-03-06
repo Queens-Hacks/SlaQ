@@ -81,7 +81,6 @@ li {
   border-bottom: solid 1px #c7d7ee;
   border-radius: 4px;
 }
-@media screen and (min-width: 600px) {}
 #form {
   width: 100%;
 }
@@ -126,7 +125,9 @@ a:active {
 #title {
   position: absolute;
   left: 10px;
-  top: 10px
+  top: 10px;
+  background-color: #F3ECE2;
+  padding: 10px;
 }
 #title h1 {
   text-align: center;
@@ -139,19 +140,27 @@ a:active {
   font-feature-settings: "kern", "liga", "dlig", "hlig", "cswh";
   font-synthesis: weight style;
   font-size: 2.8em;
-  line-height: 1.2;
+  /*line-height: 1.2;*/
 }
 #Courses {
   position: absolute;
   left: 20px;
   top: 100px;
-
+  background-color: #F3ECE2;
 }
-
-#Courses h3{
+#Courses h3 {
   border-style: solid;
   border-width: 1px;
   border-radius: 1px;
   padding: 3px;
   margin: 3px;
+  font-size: 1em;
+}
+@media only screen and (min-width: 800px) {
+  #title h1 {
+    font-size: 5em;
+  }
+  #Courses h3 {
+    font-size: 1.3em;
+  }
 }

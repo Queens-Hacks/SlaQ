@@ -116,6 +116,7 @@
 	    _this.handleNameChange = _this.handleNameChange.bind(_this);
 	    _this.handleInputTextChange = _this.handleInputTextChange.bind(_this);
 	    _this.starMessageHandler = _this.starMessageHandler.bind(_this);
+	    _this.messageSendUtil = _this.messageSendUtil.bind(_this);
 	
 	    return _this;
 	  }
@@ -123,32 +124,26 @@
 	  _createClass(ChatBox, [{
 	    key: "handleNewMessage",
 	    value: function handleNewMessage(messageInfo) {
-	      this.setState({
-	        messages: [messageInfo].concat(this.state.messages)
-	      });
+	      if (messageInfo.name === "__ADMIN__") {
+	        var starInfo = JSON.parse(messageInfo.text);
 	
-	      function findPos(obj) {
-	        var curtop = 0;
-	        if (obj.offsetParent) {
-	          do {
-	            curtop += obj.offsetTop;
-	          } while (obj = obj.offsetParent);
-	          return [curtop];
-	        }
+	        var toChange = _underscore2.default.findWhere(this.state.messages, { id: starInfo.MessageId });
+	        var index = _underscore2.default.indexOf(this.state.messages, toChange);
+	        var newMessages = _underscore2.default.clone(this.state.messages);
+	        newMessages[index].stars = starInfo.NumStars;
+	        this.setState({ messages: newMessages });
+	      } else {
+	
+	        this.setState({
+	          messages: [messageInfo].concat(this.state.messages)
+	        });
 	      }
-	      // var scroller = document.getElementById("messages");
-	      //  scroller.scrollTop(scroller[0].scrollHeight);
-	      window.scroll(0, findPos(document.getElementById("bottom")));
 	    }
 	  }, {
 	    key: "handlePostMessage",
 	    value: function handlePostMessage(e) {
 	      if (e.keyCode === 13) {
-	        var outgoingMessage = {
-	          MessageText: this.state.inputText,
-	          MessageDisplayName: this.state.name.slice(0, 15)
-	        };
-	        this.state.socket.send(JSON.stringify(outgoingMessage));
+	        this.messageSendUtil(this.state.inputText, this.state.name.slice(0, 15));
 	        this.setState({ inputText: "" });
 	        return false;
 	      }
@@ -167,9 +162,19 @@
 	    key: "starMessageHandler",
 	    value: function starMessageHandler(key, e) {
 	
-	      var changed = _underscore2.default.findWhere(this.state.messages, { id: key });
-	      // console.log(changed)
+	      // let changed = _.findWhere(this.state.messages, {id: key})
+	      console.log("starring " + key.toString());
+	      this.messageSendUtil("/star " + key.toString(), this.state.name);
 	      // this.setState({messages:[changed]})
+	    }
+	  }, {
+	    key: "messageSendUtil",
+	    value: function messageSendUtil(text, name) {
+	      var outgoingMessage = {
+	        MessageText: text,
+	        MessageDisplayName: name
+	      };
+	      this.state.socket.send(JSON.stringify(outgoingMessage));
 	    }
 	  }, {
 	    key: "componentDidMount",
@@ -274,7 +279,7 @@
 	      var _this5 = this;
 	
 	      var messageNodes = this.props.messages.map(function (course) {
-	        return _react2.default.createElement(MessageCard, { data: course, starMessageHandler: _this5.props.starMessageHandler });
+	        return _react2.default.createElement(MessageCard, { key: course.id, data: course, starMessageHandler: _this5.props.starMessageHandler });
 	      });
 	      return _react2.default.createElement(
 	        "ul",
@@ -22417,7 +22422,7 @@
 	exports.push([module.id, "@import url(https://fonts.googleapis.com/css?family=Pacifico);", ""]);
 	
 	// module
-	exports.push([module.id, "html * {\n  font-family: \"Helvetica\";\n  margin: 0px;\n  padding: 0px;\n}\nbody, html, .container, #myApp {\n  height: 100%;\n}\n#chatContainer {\n  height: 100%;\n  max-width: 700px;\n  margin: auto;\n}\n.MessageList {\n  height: calc(100% - 35px);\n  width: 100%;\n  overflow-y: scroll;\n}\n#messages {\n  min-height: 100%;\n  display: flex;\n  flex-direction: column-reverse;\n  border-style: solid;\n  border-width: 1px;\n  border-color: rgba(255, 255, 255, 0.241);\n  background-color: rgba(255, 255, 255, 0.141);\n}\n.star, .starPlaceholder {\n  width: 20px;\n  margin-left: 7px;\n  color: grey\n}\n.starPlaceholder {\n  opacity: .0;\n}\n.star::before {\n  content: \"\\2605\";\n  align-content: center;\n  width: 0px;\n  float: left;\n  font-size: 1.8em;\n  line-height: .9em;\n  margin: 0px;\n  padding: 0px;\n  color: #fff7a9;\n  text-shadow: 1px 1px rgb(170, 200, 20);\n}\n.commentInfo {\n  padding-left: 10px;\n  display: inline-block;\n  width: 150px;\n  border-style: bold;\n}\n.commentInfo * {\n  overflow-x: hidden;\n}\n.commentInfo::after {\n  content: \": \";\n  opacity: 0.3;\n  float: right;\n  right: 0;\n  padding-right: 10px;\n}\n.commentBody {}\nbody {\n  text-align: center;\n  padding: 2px;\n  margin: 0px auto;\n  background-color: #F3ECE2;\n}\nul {\n  text-align: left;\n  list-style-type: none;\n  /*overflow-y: scroll;*/\n}\nli {\n  background-color: rgba(120, 150, 130, 0.05);\n  padding: 2px 5px;\n  margin: 2px 2px;\n  border-bottom: solid 1px #c7d7ee;\n  border-radius: 4px;\n}\n@media screen and (min-width: 600px) {}\n#form {\n  width: 100%;\n}\n#desiredName {\n  width: 90px;\n  border-radius: 4px 0px 0px 4px;\n}\n#userMessage {\n  width: calc( 100% - 90px);\n  border-radius: 0px 4px 4px 0px;\n}\ninput[type=\"text\"] {\n  background-color: rgba(160, 160, 140, 0.03);\n  padding: 4px;\n  border: solid 1px #fff;\n  transition: box-shadow 0.3s;\n}\nbox-shadow: inset 1px 1px 2px 0 #c9c9c9;\ninput[type=\"text\"]:focus, input[type=\"text\"].focus {\n  box-shadow: inset 1px 1px 2px 0 #707070;\n}\na:link {\n  color: black;\n  background-color: transparent;\n  text-decoration: none\n}\na:visited {\n  color: black;\n  background-color: transparent;\n  text-decoration: none\n}\na:hover {\n  color: black;\n  background-color: transparent;\n  text-decoration: underline\n}\na:active {\n  color: black;\n  background-color: transparent;\n  text-decoration: underline\n}\n#title {\n  position: absolute;\n  left: 10px;\n  top: 10px\n}\n#title h1 {\n  text-align: center;\n  font-family: 'Pacifico', cursive;\n  font-weight: 400;\n  font-style: italic;\n  font-size-adjust: none;\n  font-language-override: normal;\n  font-kerning: auto;\n  font-feature-settings: \"kern\", \"liga\", \"dlig\", \"hlig\", \"cswh\";\n  font-synthesis: weight style;\n  font-size: 2.8em;\n  line-height: 1.2;\n}\n#Courses {\n  position: absolute;\n  left: 20px;\n  top: 100px;\n\n}\n\n#Courses h3{\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 1px;\n  padding: 3px;\n  margin: 3px;\n}\n", ""]);
+	exports.push([module.id, "html * {\n  font-family: \"Helvetica\";\n  margin: 0px;\n  padding: 0px;\n}\nbody, html, .container, #myApp {\n  height: 100%;\n}\n#chatContainer {\n  height: 100%;\n  max-width: 700px;\n  margin: auto;\n}\n.MessageList {\n  height: calc(100% - 35px);\n  width: 100%;\n  overflow-y: scroll;\n}\n#messages {\n  min-height: 100%;\n  display: flex;\n  flex-direction: column-reverse;\n  border-style: solid;\n  border-width: 1px;\n  border-color: rgba(255, 255, 255, 0.241);\n  background-color: rgba(255, 255, 255, 0.141);\n}\n.star, .starPlaceholder {\n  width: 20px;\n  margin-left: 7px;\n  color: grey\n}\n.starPlaceholder {\n  opacity: .0;\n}\n.star::before {\n  content: \"\\2605\";\n  align-content: center;\n  width: 0px;\n  float: left;\n  font-size: 1.8em;\n  line-height: .9em;\n  margin: 0px;\n  padding: 0px;\n  color: #fff7a9;\n  text-shadow: 1px 1px rgb(170, 200, 20);\n}\n.commentInfo {\n  padding-left: 10px;\n  display: inline-block;\n  width: 150px;\n  border-style: bold;\n}\n.commentInfo * {\n  overflow-x: hidden;\n}\n.commentInfo::after {\n  content: \": \";\n  opacity: 0.3;\n  float: right;\n  right: 0;\n  padding-right: 10px;\n}\n.commentBody {}\nbody {\n  text-align: center;\n  padding: 2px;\n  margin: 0px auto;\n  background-color: #F3ECE2;\n}\nul {\n  text-align: left;\n  list-style-type: none;\n  /*overflow-y: scroll;*/\n}\nli {\n  background-color: rgba(120, 150, 130, 0.05);\n  padding: 2px 5px;\n  margin: 2px 2px;\n  border-bottom: solid 1px #c7d7ee;\n  border-radius: 4px;\n}\n#form {\n  width: 100%;\n}\n#desiredName {\n  width: 90px;\n  border-radius: 4px 0px 0px 4px;\n}\n#userMessage {\n  width: calc( 100% - 90px);\n  border-radius: 0px 4px 4px 0px;\n}\ninput[type=\"text\"] {\n  background-color: rgba(160, 160, 140, 0.03);\n  padding: 4px;\n  border: solid 1px #fff;\n  transition: box-shadow 0.3s;\n}\nbox-shadow: inset 1px 1px 2px 0 #c9c9c9;\ninput[type=\"text\"]:focus, input[type=\"text\"].focus {\n  box-shadow: inset 1px 1px 2px 0 #707070;\n}\na:link {\n  color: black;\n  background-color: transparent;\n  text-decoration: none\n}\na:visited {\n  color: black;\n  background-color: transparent;\n  text-decoration: none\n}\na:hover {\n  color: black;\n  background-color: transparent;\n  text-decoration: underline\n}\na:active {\n  color: black;\n  background-color: transparent;\n  text-decoration: underline\n}\n#title {\n  position: absolute;\n  left: 10px;\n  top: 10px;\n  background-color: #F3ECE2;\n  padding: 10px;\n}\n#title h1 {\n  text-align: center;\n  font-family: 'Pacifico', cursive;\n  font-weight: 400;\n  font-style: italic;\n  font-size-adjust: none;\n  font-language-override: normal;\n  font-kerning: auto;\n  font-feature-settings: \"kern\", \"liga\", \"dlig\", \"hlig\", \"cswh\";\n  font-synthesis: weight style;\n  font-size: 2.8em;\n  /*line-height: 1.2;*/\n}\n#Courses {\n  position: absolute;\n  left: 20px;\n  top: 100px;\n  background-color: #F3ECE2;\n}\n#Courses h3 {\n  border-style: solid;\n  border-width: 1px;\n  border-radius: 1px;\n  padding: 3px;\n  margin: 3px;\n  font-size: 1em;\n}\n@media only screen and (min-width: 800px) {\n  #title h1 {\n    font-size: 5em;\n  }\n  #Courses h3 {\n    font-size: 1.3em;\n  }\n}\n", ""]);
 	
 	// exports
 
