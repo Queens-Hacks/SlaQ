@@ -66,9 +66,23 @@ func readOneMessageFromRows(rows *sql.Rows) (externalMessage, error) {
 		MessageText:        dbMessageText,
 		MessageDisplayName: dbAuthorName,
 		MessageId:          dbMessageId,
-		// TODO: Pull stars for real
-		Stars: 0,
+		Stars:              getNumStarsForMessageId(dbMessageId),
 	}
 
 	return messageToSend, nil
+}
+
+func getNumStarsForMessageId(messageId int64) int64 {
+	rows, err := db.Query("select id from stars where stars.message_id = ?", messageId)
+	if err != nil {
+		log.Println("error reading stars for message: ", err)
+	}
+	defer rows.Close()
+	var counter int64
+	for rows.Next() {
+		var id int64
+		rows.Scan(&id)
+		counter += 1
+	}
+	return counter
 }
