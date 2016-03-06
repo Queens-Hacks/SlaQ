@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -32,8 +31,4 @@ func arbitraryChatPageHandler(w http.ResponseWriter, r *http.Request) {
 	cData := courseData{CourseTitle: "Databases", HostAndPort: r.Host, CourseCode: courseCode}
 	tmpl.Execute(w, cData)
 
-}
-
-func indexPageHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "We are on index page")
 }
